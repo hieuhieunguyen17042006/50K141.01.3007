@@ -1,0 +1,12 @@
+@using System.Globalization
+@model HoaDon
+@{
+    string Money(decimal n)=>n.ToString("N0",CultureInfo.GetCultureInfo("vi-VN"))+" đ";
+    var effective=Model.Phieus.Where(p=>p.TrangThai=="Hiệu lực");
+    var fees=effective.Where(p=>p.LoaiPhieu=="ChiPhiPhatSinh"&&p.LoaiChiPhiPhatSinh=="ThuThemKhach").Sum(p=>p.SoTien);
+    var returns=effective.Where(p=>p.LoaiPhieu is "TraHang" or "DoiHang").Sum(p=>p.TienChenhLech);
+    var other=Model.TongThanhToan-(Model.TongTienHang-Model.TienChietKhau+Model.ChiPhiVanChuyen+Model.TienThue)-fees-returns;
+}
+@if(fees!=0){<div data-adjustment="expense"><span>Chi phí phát sinh</span><strong>@Money(fees)</strong></div>}
+@if(returns!=0){<div data-adjustment="return"><span>Điều chỉnh đổi trả</span><strong>@Money(returns)</strong></div>}
+@if(other!=0){<div><span>Điều chỉnh khác đã lưu</span><strong>@Money(other)</strong></div>}

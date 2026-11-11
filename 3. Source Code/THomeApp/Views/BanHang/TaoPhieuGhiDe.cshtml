@@ -1,0 +1,37 @@
+@using System.Globalization
+@using System.Text.Json
+@model HoaDon
+@{ViewData["Title"]=$"Phiếu ghi đè hóa đơn {Model.MaHoaDon??Model.MaHD}";var products=ViewBag.OverrideProducts as List<SanPham>??new();string Money(decimal n)=>n.ToString("N0",CultureInfo.GetCultureInfo("vi-VN"))+" đ";var discountRate=Model.TongTienHang>0?Model.TienChietKhau/Model.TongTienHang:0;}
+@section Styles {<link rel="stylesheet" href="~/css/vouchers.css" asp-append-version="true" />}
+<div class="voucher-page voucher-override-page" data-voucher-kind="override">
+    <h1>Phiếu ghi đè hóa đơn @(Model.MaHoaDon??Model.MaHD)</h1>
+    @if(Model.SoLanGhiDe>=2){<div id="overrideWarning" class="voucher-warning @(Model.SoLanGhiDe>=5?"danger":"warning")" role="alert">Cảnh báo: Hóa đơn đã ghi đè @Model.SoLanGhiDe lần.</div>}
+    <form method="post" asp-action="LuuPhieuGhiDe" id="overrideForm" class="voucher-form" novalidate>
+    <input type="hidden" name="maHD" value="@Model.MaHD" /><div class="voucher-error" role="alert" hidden>Không hợp lệ!</div>
+    <div class="voucher-grid"><div class="voucher-main voucher-override-main">
+        <section class="voucher-white"><h3>Thông tin khách hàng</h3><label>Tên khách hàng / số điện thoại<input class="form-control" id="overrideCustomer" readonly value="@Model.KhachHang?.HoTen · @Model.KhachHang?.SDT" /></label></section>
+        <section class="voucher-white"><span data-error-for="itemsJson"></span>
+            <div class="table-responsive"><table class="voucher-table" id="overrideTable"><thead><tr><th>Tên sản phẩm</th><th>ĐVT</th><th>Số lượng</th><th>Đơn giá</th><th>Thành tiền</th><th class="visually-hidden">Thao tác</th></tr></thead><tbody id="overrideTableBody"></tbody></table></div>
+            <button type="button" class="voucher-add-row" id="addOverrideRow">+ Thêm sản phẩm</button>
+            <label>Địa chỉ giao hàng<input class="form-control" id="overrideAddress" readonly value="@Model.DiaChiGiao" /></label>
+            <label>Ghi chú<input name="ghiChu" class="form-control" value="@Model.GhiChu" maxlength="500" /><span data-error-for="ghiChu"></span></label>
+            <label>Lý do ghi đè <em>*</em><textarea id="lyDoGhiDe" name="lyDoGhiDe" class="form-control" maxlength="500" rows="4" required></textarea><span data-error-for="lyDoGhiDe"></span></label>
+        </section>
+    </div><aside class="voucher-side"><section class="voucher-summary"><h3>Tổng thanh toán</h3>
+        <div><span>Tiền hàng</span><strong id="displayNewSubtotal">@Money(Model.TongTienHang)</strong></div><div><span>Chiết khấu @((discountRate*100).ToString("0.##",CultureInfo.GetCultureInfo("vi-VN")))%</span><strong id="overrideDiscount">−@Money(Model.TienChietKhau)</strong></div>
+        <div><span>Phí vận chuyển</span><strong>@Money(Model.ChiPhiVanChuyen)</strong></div><div><span>Thuế VAT</span><strong id="overrideTax">@Money(Model.TienThue)</strong></div>
+        <div><span>Phát sinh / đổi trả đã lưu</span><strong>@Money(Model.TongThanhToan-Model.TongTienHang+Model.TienChietKhau-Model.ChiPhiVanChuyen-Model.TienThue)</strong></div>
+        <div class="voucher-total"><span>TỔNG CỘNG</span><strong id="displayNewTotal">@Money(Model.TongThanhToan)</strong></div><div><span>Đã thu</span><strong>@Money(Model.DaThu)</strong></div>
+        @if(Model.DaHoanKhach>0){<div><span>Đã hoàn thực tế</span><strong>@Money(Model.DaHoanKhach)</strong></div>}
+        <div class="voucher-difference"><span>CẦN THU THÊM</span><strong id="boxCanThuThem">@Money(Model.ConNo)</strong></div><div class="voucher-difference"><span>PHẢI TRẢ KHÁCH</span><strong id="boxPhaiTraKhach">@Money(Model.PhaiHoan)</strong></div>
+    </section><label>Phí vận chuyển gộp<input class="form-control" readonly value="@Money(Model.ChiPhiVanChuyen)" /></label><label>Chiết khấu tích lũy<input class="form-control" readonly value="@((discountRate*100).ToString("0.##"))% · Đã áp dụng" /></label>
+    <p class="voucher-hint">Chênh lệch chưa phải giao dịch đã thu hoặc đã hoàn.</p><partial name="_VoucherActions" model="Model" /></aside></div>
+    </form>
+</div>
+<partial name="_VoucherResult" />
+@section Scripts {
+<script id="voucherData" type="application/json">@Html.Raw(JsonSerializer.Serialize(new{total=Model.TongThanhToan,netPaid=Model.ThuRong,discountRate,taxRate=Model.TongTienHang>Model.TienChietKhau?Model.TienThue/(Model.TongTienHang-Model.TienChietKhau):0,extraCharges=Model.TongThanhToan-Model.TongTienHang+Model.TienChietKhau-Model.TienThue,
+    products=products.Select(p=>new{code=p.MaSP,name=p.TenSP,unit=p.DonViTinh,deleted=p.IsDeleted,price=p.LichSuGia.Where(g=>g.NgayApDung<=DateTime.Now).OrderByDescending(g=>g.NgayApDung).ThenByDescending(g=>g.MaGia).FirstOrDefault()?.DonGia??0}),
+    lines=Model.ChiTietHoaDons.Select(c=>new{code=c.MaSP,quantity=c.SoLuong,returned=c.SoLuongDaTra,price=c.DonGiaBan})}))</script>
+<script src="~/js/vouchers.js" asp-append-version="true"></script>
+}

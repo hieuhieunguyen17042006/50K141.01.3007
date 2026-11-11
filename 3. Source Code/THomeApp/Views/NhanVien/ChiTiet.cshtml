@@ -1,0 +1,127 @@
+@model THomeApp.Models.NhanVien
+@{
+    ViewData["Title"] = "Chi tiết nhân viên";
+    var soHoaDon = (int)ViewBag.SoHoaDon;
+    var tongDoanhThu = (decimal)ViewBag.TongDoanhThu;
+    var soPhieu = (int)ViewBag.SoPhieu;
+    var roleColor = Model.ViTri switch {
+        "Chủ cửa hàng" => "danger",
+        "Kế toán bán hàng" => "warning",
+        _ => "primary"
+    };
+}
+
+<div class="page-header mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/NhanVien/Index">Nhân viên</a></li>
+            <li class="breadcrumb-item active">Chi tiết</li>
+        </ol>
+    </nav>
+    <h2 class="page-title"><i class="bi bi-person-lines-fill me-2"></i>Chi tiết nhân viên</h2>
+</div>
+
+<div class="row g-4">
+    <!-- Thẻ thông tin chính -->
+    <div class="col-md-4">
+        <div class="card shadow-sm text-center">
+            <div class="card-body py-4">
+                <div class="avatar-large bg-@roleColor text-white mx-auto mb-3">
+                    @Model.HoTen.Split(' ').Last().Substring(0, 1).ToUpper()
+                </div>
+                <h4 class="mb-1">@Model.HoTen</h4>
+                <span class="badge bg-@roleColor fs-6 mb-3">@Model.ViTri</span>
+                <div class="d-flex justify-content-center mb-2">
+                    @if (Model.TrangThai == "Đang hoạt động")
+                    {
+                        <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>Đang hoạt động</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger"><i class="bi bi-lock-fill me-1"></i>Đã khóa</span>
+                    }
+                </div>
+                <p class="text-muted small mb-0">Ngày tham gia: @Model.NgayTao.ToString("dd/MM/yyyy")</p>
+            </div>
+            <div class="card-footer d-flex gap-2 justify-content-center">
+                <a href="/NhanVien/Sua/@Model.MaNV" class="btn btn-warning btn-sm">
+                    <i class="bi bi-pencil-fill me-1"></i>Chỉnh sửa
+                </a>
+                <form method="post" action="/NhanVien/DoiTrangThai/@Model.MaNV"
+                      onsubmit="return confirm('Bạn chắc chắn muốn khóa tài khoản này?')">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-sm btn-danger" disabled="@(Model.TrangThai != "Đang hoạt động" || Model.MaNV == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)">
+                        <i class="bi @(Model.TrangThai == "Đang hoạt động" ? "bi-lock-fill" : "bi-unlock-fill") me-1"></i>
+                        @(Model.TrangThai == "Đang hoạt động" ? "Khóa TK" : "Đã khóa")
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thông tin chi tiết -->
+    <div class="col-md-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header"><h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Thông tin cá nhân</h6></div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0">
+                    <tr>
+                        <td class="text-muted" style="width:40%">Mã nhân viên</td>
+                        <td><code class="text-primary fw-semibold">@Model.MaNV</code></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Tên đăng nhập</td>
+                        <td><code>@Model.TenDN</code></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Số điện thoại</td>
+                        <td>@(Model.SDT ?? "—")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">CCCD/CMND</td>
+                        <td>@(Model.CCCD ?? "—")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Địa chỉ</td>
+                        <td>@(Model.DiaChi ?? "—")</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Thống kê hoạt động -->
+        <div class="card shadow-sm">
+            <div class="card-header"><h6 class="mb-0"><i class="bi bi-graph-up me-2"></i>Thống kê hoạt động</h6></div>
+            <div class="card-body">
+                <div class="row g-3 text-center">
+                    <div class="col-4">
+                        <div class="p-3 rounded bg-primary bg-opacity-10">
+                            <div class="fs-3 fw-bold text-primary">@soHoaDon</div>
+                            <div class="small text-muted">Hóa đơn tạo</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-3 rounded bg-success bg-opacity-10">
+                            <div class="fs-5 fw-bold text-success">@tongDoanhThu.ToString("N0") đ</div>
+                            <div class="small text-muted">Doanh thu hoàn thành</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-3 rounded bg-info bg-opacity-10">
+                            <div class="fs-3 fw-bold text-info">@soPhieu</div>
+                            <div class="small text-muted">Phiếu xử lý</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-large {
+    width: 80px; height: 80px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; font-weight: bold;
+}
+</style>

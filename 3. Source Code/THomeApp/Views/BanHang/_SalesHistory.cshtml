@@ -1,0 +1,179 @@
+@model THomeApp.Models.HoaDon
+        <!-- Lan Thu Tien (Theo dõi nhiều lần thu / đặt cọc) -->
+        <div class="card-thome mb-4">
+            <div class="card-thome-header d-flex justify-content-between align-items-center">
+                <h5 class="card-thome-title">
+                    <i class="fa-solid fa-money-bill-1-wave text-success"></i> Lịch sử thu tiền thực tế
+                </h5>
+                @if (Model.ConNo > 0)
+                {
+                    <button type="button" class="btn btn-sm btn-outline-success fw-bold" data-bs-toggle="modal" data-bs-target="#collectMoneyModal">
+                        <i class="fa-solid fa-plus me-1"></i> Thu thêm tiền
+                    </button>
+                }
+            </div>
+            <div class="card-thome-body p-0">
+                @if (!Model.LanThuTiens.Any())
+                {
+                    <div class="text-center py-3 text-muted small">
+                        Chưa có lần thu tiền nào được ghi nhận.
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light small">
+                                <tr>
+                                    <th class="ps-3">Thời gian</th>
+                                    <th>Nội dung thu</th>
+                                    <th>Hình thức</th>
+                                    <th>Nhân viên thu</th>
+                                    <th class="text-end pe-3">Số tiền thu</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var lt in Model.LanThuTiens.OrderBy(l => l.NgayThu))
+                                {
+                                    <tr>
+                                        <td class="ps-3 small">@lt.NgayThu.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td class="fw-semibold">@lt.NoiDung</td>
+                                        <td><span class="badge bg-light text-dark border">@lt.PhuongThucThanhToan</span></td>
+                                        <td class="small">@(lt.NhanVienThu?.HoTen ?? lt.MaNVThu)</td>
+                                        <td class="text-end pe-3 fw-bold text-success">+ @string.Format("{0:N0} đ", lt.SoTienThu)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Dot Giao Hang (Đơn công trình giao nhiều đợt) -->
+        @if (Model.TyLeDatCoc > 0 || Model.DotGiaoHangs.Any())
+        {
+            <div class="card-thome mb-4">
+                <div class="card-thome-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-thome-title">
+                        <i class="fa-solid fa-truck-ramp-box text-warning"></i> Tiến độ giao hàng theo đợt (Đơn công trình)
+                    </h5>
+                    <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-bold" data-bs-toggle="modal" data-bs-target="#addDeliveryModal">
+                        <i class="fa-solid fa-plus me-1"></i> Thêm đợt giao
+                    </button>
+                </div>
+                <div class="card-thome-body p-0">
+                    @if (!Model.DotGiaoHangs.Any())
+                    {
+                        <div class="text-center py-3 text-muted small">
+                            Chưa có đợt giao hàng nào. Nhấn "Thêm đợt giao" để cập nhật tiến độ công trình.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var dg in Model.DotGiaoHangs.OrderBy(d => d.DotThu))
+                            {
+                                <div class="list-group-item p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="fw-bold text-dark fs-6">Đợt @dg.DotThu (@dg.NgayGiao.ToString("dd/MM/yyyy"))</span>
+                                        <span class="badge @(dg.TrangThaiGiao == "Đã giao thành công" ? "bg-success" : "bg-warning text-dark")">
+                                            @dg.TrangThaiGiao
+                                        </span>
+                                    </div>
+                                    <div class="small text-muted mb-2">Người giao: <strong>@(dg.NguoiGiao ?? "Đang cập nhật")</strong> • @dg.GhiChu</div>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered mb-0 bg-white">
+                                            <thead class="table-light small">
+                                                <tr>
+                                                    <th>Sản phẩm giao</th>
+                                                    <th class="text-center" style="width: 120px;">Số lượng giao</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var spGiao in dg.ChiTietGiaoHangs)
+                                                {
+                                                    <tr>
+                                                        <td>@(spGiao.SanPham?.TenSP ?? spGiao.MaSP)</td>
+                                                        <td class="text-center fw-bold">@spGiao.SoLuongGiao @(spGiao.SanPham?.DonViTinh ?? "")</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Danh sách Phiếu gắn liền (CPPS, Đổi trả, Ghi đè) -->
+        <div class="card-thome">
+            <div class="card-thome-header">
+                <h5 class="card-thome-title">
+                    <i class="fa-solid fa-tags text-primary"></i> Chứng từ liên quan
+                </h5>
+            </div>
+            <div class="card-thome-body p-0">
+                @if (!Model.Phieus.Any())
+                {
+                    <div class="text-center py-3 text-muted small">
+                        Chưa phát sinh phiếu chi phí phát sinh, phiếu đổi trả hoặc phiếu ghi đè nào.
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" id="relatedVouchers">
+                            <thead class="table-light small">
+                                <tr>
+                                    <th class="ps-3">Mã phiếu</th>
+                                    <th>Loại phiếu</th>
+                                    <th>Lý do</th>
+                                    <th>Thời gian</th>
+                                    <th>Nhân viên</th>
+                                    <th class="text-end pe-3">Số tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var p in Model.Phieus.OrderByDescending(p => p.NgayLap))
+                                {
+                                    <tr data-voucher-code="@p.MaPhieu">
+                                        <td class="ps-3 fw-bold text-primary"><a href="/BanHang/ChiTietPhieu?id=@p.MaPhieu">@p.MaPhieu</a></td>
+                                        <td>
+                                            @if (p.LoaiPhieu == "ChiPhiPhatSinh")
+                                            {
+                                                <span class="badge bg-warning text-dark">Phát sinh (@(p.LoaiChiPhiPhatSinh == "ThuThemKhach" ? "Thu thêm" : "Cửa hàng chi"))</span>
+                                            }
+                                            else if (p.LoaiPhieu == "DoiHang")
+                                            {
+                                                <span class="badge bg-info text-dark">Đổi hàng (@(p.HinhThucXuLyDoiTra == "CanTruCongNo" ? "Cấn công nợ" : "Hoàn trực tiếp"))</span>
+                                            }
+                                            else if (p.LoaiPhieu == "TraHang")
+                                            {
+                                                <span class="badge bg-danger">Trả hàng (@(p.HinhThucXuLyDoiTra == "CanTruCongNo" ? "Cấn công nợ" : "Hoàn trực tiếp"))</span>
+                                            }
+                                            else if (p.LoaiPhieu == "HoanTien") { <span class="badge bg-success">Đã hoàn tiền</span> }
+                                            else if (p.LoaiPhieu == "GhiDe")
+                                            {
+                                                <span class="badge bg-secondary">Ghi đè (Lần @p.SoLanGhiDeHienTai)</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-light text-dark">@p.LoaiPhieu</span>
+                                            }
+                                        </td>
+                                        <td class="small">@p.LyDo</td>
+                                        <td class="small">@p.NgayLap.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td class="small">@(p.NhanVien?.HoTen ?? p.MaNV)</td>
+                                        <td class="text-end pe-3 fw-bold">@string.Format("{0:N0} đ", p.SoTien)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>

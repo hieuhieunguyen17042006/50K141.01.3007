@@ -1,0 +1,165 @@
+@model THomeApp.Models.KhachHang
+@{
+    ViewData["Title"] = $"Khách hàng: {Model.HoTen}";
+    var hoaDons = ViewBag.HoaDons as List<THomeApp.Models.HoaDon> ?? new();
+    var ckRate = Model.TongTichLuy >= 1_000_000_000m ? 3 : (Model.TongTichLuy >= 500_000_000m ? 2 : 0);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a href="/KhachHang/Index" class="btn btn-outline-secondary btn-sm mb-2">
+            <i class="fa-solid fa-arrow-left me-1"></i> Quay lại danh sách
+        </a>
+        <h3 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+            <i class="fa-solid fa-id-card text-primary"></i> @Model.HoTen
+            <span class="badge @(Model.LoaiKhach == "Doanh nghiệp" ? "bg-primary" : "bg-secondary") fs-6">@Model.LoaiKhach</span>
+            @if (ckRate > 0)
+            {
+                <span class="badge bg-success fs-6"><i class="fa-solid fa-award me-1"></i> Ưu đãi @ckRate%</span>
+            }
+        </h3>
+    </div>
+    <div>
+        <a href="/KhachHang/Sua?id=@Model.MaKH" class="btn btn-outline-warning text-dark fw-bold">
+            <i class="fa-solid fa-pen me-1"></i> Chỉnh sửa thông tin
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Customer Info Details Card -->
+    <div class="col-12 col-lg-5">
+        <div class="card-thome h-100">
+            <div class="card-thome-header">
+                <h5 class="card-thome-title">
+                    <i class="fa-solid fa-circle-info text-primary"></i> Thông tin cá nhân & Doanh nghiệp
+                </h5>
+            </div>
+            <div class="card-thome-body">
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">Mã khách hàng:</span>
+                    <strong class="text-primary">@Model.MaKH</strong>
+                </div>
+
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">Số điện thoại:</span>
+                    <strong>@Model.SDT</strong>
+                </div>
+
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">Email:</span>
+                    <span>@(string.IsNullOrEmpty(Model.Email) ? "Chưa có" : Model.Email)</span>
+                </div>
+
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">Giới tính:</span>
+                    <span>@(string.IsNullOrEmpty(Model.GioiTinh) ? "-" : Model.GioiTinh)</span>
+                </div>
+
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">Ngày sinh:</span>
+                    <span>@(Model.NgaySinh.HasValue ? Model.NgaySinh.Value.ToString("dd/MM/yyyy") : "-")</span>
+                </div>
+
+                @if (Model.LoaiKhach == "Doanh nghiệp")
+                {
+                    <div class="d-flex justify-content-between py-2 border-bottom">
+                        <span class="text-muted">Tên công ty:</span>
+                        <strong class="text-dark">@Model.TenCongTy</strong>
+                    </div>
+
+                    <div class="d-flex justify-content-between py-2 border-bottom">
+                        <span class="text-muted">Mã số thuế:</span>
+                        <code>@Model.MaSoThue</code>
+                    </div>
+                }
+
+                <div class="py-2 border-bottom">
+                    <span class="text-muted d-block mb-1">Địa chỉ liên hệ:</span>
+                    <div class="fw-semibold">@(string.IsNullOrEmpty(Model.DiaChi) ? "Chưa cập nhật" : Model.DiaChi)</div>
+                </div>
+
+                <div class="py-2 border-bottom">
+                    <span class="text-muted d-block mb-1">Ghi chú:</span>
+                    <div class="small">@(string.IsNullOrEmpty(Model.GhiChu) ? "Không có" : Model.GhiChu)</div>
+                </div>
+
+                <div class="mt-4 p-3 bg-light rounded-3 text-center">
+                    <div class="text-muted small text-uppercase fw-bold">Tổng doanh số mua tích lũy</div>
+                    <h3 class="fw-bold text-primary my-2">@string.Format("{0:N0} đ", Model.TongTichLuy)</h3>
+                    @if (ckRate > 0)
+                    {
+                        <span class="badge bg-success-soft text-success fw-bold px-3 py-2">
+                            Đã đạt điều kiện hưởng chiết khấu @ckRate%
+                        </span>
+                    }
+                    else
+                    {
+                        <small class="text-muted">Cần thêm @string.Format("{0:N0} đ", Math.Max(500000000 - Model.TongTichLuy, 0)) để đạt mốc chiết khấu 2%</small>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Purchased Invoices History (Figma: Ấn Hóa đơn đã mua hiện ra các hóa đơn của KH.png) -->
+    <div class="col-12 col-lg-7">
+        <div class="card-thome h-100">
+            <div class="card-thome-header d-flex justify-content-between align-items-center">
+                <h5 class="card-thome-title">
+                    <i class="fa-solid fa-receipt text-primary"></i> Lịch sử hóa đơn đã mua (@hoaDons.Count)
+                </h5>
+                <a href="/BanHang/TaoDonTamTinh" class="btn btn-sm btn-thome-primary">
+                    <i class="fa-solid fa-plus me-1"></i> Tạo đơn cho khách
+                </a>
+            </div>
+            <div class="card-thome-body p-0">
+                @if (!hoaDons.Any())
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="fa-solid fa-file-invoice text-muted fs-1 mb-2"></i>
+                        <div>Khách hàng chưa có lịch sử mua hàng nào.</div>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light small">
+                                <tr>
+                                    <th class="ps-3">Mã hóa đơn</th>
+                                    <th>Ngày mua</th>
+                                    <th class="text-end">Tổng tiền</th>
+                                    <th class="text-end">Đã thu</th>
+                                    <th class="text-center">Trạng thái</th>
+                                    <th class="text-center pe-3">Xem</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var h in hoaDons)
+                                {
+                                    <tr>
+                                        <td class="ps-3 fw-bold text-primary">
+                                            <a href="/BanHang/ChiTietHoaDon?id=@h.MaHD" class="text-decoration-none">@h.MaHD</a>
+                                        </td>
+                                        <td class="small">@h.NgayTao.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td class="text-end fw-bold">@string.Format("{0:N0} đ", h.TongThanhToan)</td>
+                                        <td class="text-end text-success fw-bold">@string.Format("{0:N0} đ", h.DaThu)</td>
+                                        <td class="text-center">
+                                            <span class="badge-status badge-success-soft">@h.TrangThaiThanhToan</span>
+                                        </td>
+                                        <td class="text-center pe-3">
+                                            <a href="/BanHang/ChiTietHoaDon?id=@h.MaHD" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
+                                                <i class="fa-solid fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

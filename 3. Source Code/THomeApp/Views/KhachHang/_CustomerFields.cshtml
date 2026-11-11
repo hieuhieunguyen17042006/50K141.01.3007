@@ -1,0 +1,14 @@
+@model string
+@{var detail=Model=="customerDetail";}
+<div class="customer-fields">
+    <label><span>Loại khách hàng <em>*</em></span><div><select class="form-select" name="LoaiKhach" data-customer-field="loaiKhach" data-customer-identity disabled="@detail"><option value="Cá nhân">Cá nhân</option><option value="Doanh nghiệp">Doanh nghiệp</option></select><span data-error-for="LoaiKhach"></span></div></label>
+    <label><span>Họ và tên <em>*</em></span><div><input class="form-control" name="HoTen" data-customer-field="hoTen" data-customer-identity readonly="@detail" maxlength="100" required /><span data-error-for="HoTen"></span></div></label>
+    <label data-company-field hidden><span>Tên công ty <em>*</em></span><div><input class="form-control" name="TenCongTy" data-customer-field="tenCongTy" data-customer-identity readonly="@detail" maxlength="200" /><span data-error-for="TenCongTy"></span></div></label>
+    <label data-company-field hidden><span>Mã số thuế <em>*</em></span><div><input class="form-control" name="MaSoThue" data-customer-field="maSoThue" data-customer-identity readonly="@detail" maxlength="13" inputmode="numeric" /><span data-error-for="MaSoThue"></span></div></label>
+    <label><span>Giới tính</span><div><select class="form-select" name="GioiTinh" data-customer-field="gioiTinh" data-customer-identity disabled="@detail"><option value="">Chưa cung cấp</option><option>Nam</option><option>Nữ</option><option>Khác</option></select><span data-error-for="GioiTinh"></span></div></label>
+    <label><span>Địa chỉ</span><div><input class="form-control" name="DiaChi" data-customer-field="diaChi" data-customer-contact readonly="@detail" maxlength="255" /><span data-error-for="DiaChi"></span></div></label>
+    <label><span>Ngày sinh</span><div><input class="form-control" type="date" name="NgaySinh" data-customer-field="ngaySinh" data-customer-identity readonly="@detail" /><span data-error-for="NgaySinh"></span></div></label>
+    <label><span>Số điện thoại <em>*</em></span><div><input class="form-control" name="SDT" data-customer-field="sdt" data-customer-contact type="tel" inputmode="numeric" maxlength="10" pattern="0[0-9]{9}" readonly="@detail" required /><span data-error-for="SDT"></span></div></label>
+    <label><span>Email</span><div><input class="form-control" name="Email" data-customer-field="email" data-customer-contact type="email" maxlength="100" readonly="@detail" /><span data-error-for="Email"></span></div></label>
+    <label><span>Ghi chú</span><div><textarea class="form-control" name="GhiChu" data-customer-field="ghiChu" data-customer-contact maxlength="500" readonly="@detail"></textarea><span data-error-for="GhiChu"></span></div></label>
+</div>

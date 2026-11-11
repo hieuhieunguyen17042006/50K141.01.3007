@@ -1,0 +1,19 @@
+@model THomeApp.Models.Phieu
+@{ ViewData["Title"] = "Chi tiết phiếu"; }
+<div class="d-flex justify-content-between mb-3"><a class="btn btn-outline-primary" href="/BanHang/ChiTietHoaDon?id=@Model.MaHD">Quay lại hóa đơn</a><button class="btn btn-thome-primary" onclick="window.print()">In phiếu</button></div>
+<div class="card-thome"><div class="card-thome-body p-4">
+<h3>@Model.MaPhieu</h3><p>Loại phiếu: @Model.LoaiPhieu · Hóa đơn gốc: @Model.MaHD · @Model.NgayLap.ToString("dd/MM/yyyy HH:mm")</p>
+<p>Người lập: @Model.NhanVien?.HoTen · Lý do: @Model.LyDo</p>
+<table class="table"><thead><tr><th>Mặt hàng</th><th>Loại dòng</th><th>SL</th><th>Đơn giá xử lý</th><th>Thành tiền</th><th>Dòng gốc</th></tr></thead><tbody>
+@foreach(var line in Model.ChiTietPhieus){<tr><td>@(line.SanPham?.TenSP ?? line.MaSP)</td><td>@(line.LoaiDong == "TraHang" ? "Trả hàng" : "Đổi mới")</td><td>@line.SoLuong</td><td>@line.DonGiaXuLy.ToString("N0") đ</td><td>@line.ThanhTien.ToString("N0") đ</td><td>@(line.SourceVoucherLineId.HasValue ? "Dòng phiếu #" + line.SourceVoucherLineId : line.MaHDGoc + " / " + line.MaSPGoc)</td></tr>}
+</tbody></table>
+<p>Giá trị phiếu: <strong>@Model.SoTien.ToString("N0") đ</strong></p>
+@if(Model.LoaiPhieu == "TraHang" || Model.LoaiPhieu == "DoiHang"){
+<p>Cấn công nợ: <strong>@Model.TienCanTru.ToString("N0") đ</strong> · Phát sinh phải hoàn: <strong>@Model.TienPhaiHoan.ToString("N0") đ</strong></p>
+<p>Tiền thực hoàn được ghi nhận bằng phiếu hoàn tiền riêng trên hóa đơn.</p>
+}
+@if(Model.LoaiPhieu == "HoanTien"){<p>Đã hoàn tiền: <strong>@Model.TienThucHoan.ToString("N0") đ</strong> · @Model.PhuongThucThanhToan</p>}
+<p>@Model.GhiChu</p>
+@if(!string.IsNullOrEmpty(Model.DuLieuGocJson)){<details class="voucher-snapshot" id="snapshotBefore"><summary>Bản trước điều chỉnh</summary><partial name="_InvoiceSnapshot" model="Model.DuLieuGocJson" /></details>}
+@if(!string.IsNullOrEmpty(Model.DuLieuMoiJson)){<details class="voucher-snapshot" id="snapshotAfter"><summary>Bản sau điều chỉnh</summary><partial name="_InvoiceSnapshot" model="Model.DuLieuMoiJson" /></details>}
+</div></div>

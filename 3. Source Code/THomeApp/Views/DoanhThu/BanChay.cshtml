@@ -1,0 +1,26 @@
+@model ProductStatistics
+@{ ViewData["Title"] = "Thống kê sản phẩm bán chạy"; }
+@section Styles { <link rel="stylesheet" href="~/css/revenue.css" asp-append-version="true" /> }
+<div class="revenue-page">
+    <nav class="revenue-breadcrumb" aria-label="Đường dẫn"><a asp-action="Index">DOANH THU</a> / <a asp-action="ChonTieuChi">Thống kê sản phẩm bán chạy</a></nav>
+    <div class="revenue-heading-row">
+    <h1>Thống kê sản phẩm bán chạy</h1>
+    <details class="revenue-period-picker"><summary><i class="fa-regular fa-calendar" aria-hidden="true"></i> Chọn kỳ</summary>
+    <form method="get" asp-action="BanChay">
+        <input type="hidden" name="tieuChi" value="@Model.Criterion" />
+        <label>Từ ngày<input type="date" name="fromDate" class="form-control" value="@Model.From?.ToString("yyyy-MM-dd")" /></label>
+        <label>Đến ngày<input type="date" name="toDate" class="form-control" value="@Model.To?.ToString("yyyy-MM-dd")" /></label>
+        <button class="revenue-button" type="submit">Xem thống kê</button>
+        <a asp-action="ChonTieuChi">Đổi tiêu chí</a>
+    </form>
+    </details>
+    </div>
+    <div class="revenue-rankings @(Model.Criterion == "ca2" ? "both" : "single")">
+        @if (Model.Criterion is "ca2" or "doanhthu") {
+            <partial name="_ProductRanking" model='new ProductRanking("Thống kê theo doanh thu", "doanhthu", Model.ByRevenue)' />
+        }
+        @if (Model.Criterion is "ca2" or "soluong") {
+            <partial name="_ProductRanking" model='new ProductRanking("Thống kê theo số lượng bán ra", "soluong", Model.ByQuantity)' />
+        }
+    </div>
+</div>

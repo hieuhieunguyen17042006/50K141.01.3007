@@ -1,0 +1,19 @@
+@{ ViewData["Title"] = "DOANH THU"; }
+@section Styles { <link rel="stylesheet" href="~/css/revenue.css" asp-append-version="true" /> }
+<div class="revenue-page revenue-home">
+    <h1>DOANH THU</h1>
+    <section class="revenue-menu-panel report-menu">
+        <h2>Tạo báo cáo doanh thu</h2>
+        <p>Excel / PDF</p>
+        <a class="revenue-button" asp-action="BaoCao">Tạo báo cáo doanh thu</a>
+    </section>
+    <section class="revenue-menu-panel statistics-menu">
+        <h2>Thống kê</h2>
+        <div class="statistics-options">
+            <a asp-action="BanChay" asp-route-tieuChi="doanhthu">Thống kê theo doanh thu</a>
+            <a asp-action="BanChay" asp-route-tieuChi="soluong">Thống kê theo số lượng bán ra</a>
+        </div>
+        <a class="revenue-button" asp-action="ChonTieuChi">Thống kê sản phẩm bán chạy</a>
+    </section>
+    <a class="revenue-shift-link" asp-action="DoiSoatCa"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i> Đối soát tiền mặt ca</a>
+</div>

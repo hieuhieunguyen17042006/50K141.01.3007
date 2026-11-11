@@ -1,0 +1,68 @@
+@model HoaDon
+@{
+    var issued = Model.LoaiChungTu == "HoaDon";
+    var role = ViewBag.UserRole as string ?? "Nhân viên bán hàng";
+    var active = Model.TrangThaiThanhToan != "Đã hủy";
+}
+<header class="sales-detail-toolbar">
+    <h1>@(issued ? "Chi tiết hóa đơn" : "Chi tiết đơn tạm tính " + Model.MaHD)</h1>
+    <a class="btn invoice-cancel" href="/BanHang/Index?tab=@(issued ? "hoadon" : "dontamtinh")">Quay lại danh sách</a>
+</header>
+@if (Model.SoLanGhiDe > 0) {
+    <p class="sales-override-notice @(Model.SoLanGhiDe >= 5 ? "text-danger" : Model.SoLanGhiDe>=2?"text-warning":"text-muted")">Đã ghi đè @Model.SoLanGhiDe lần @(ViewBag.CanOverride != true ? "(Đã khóa)" : "")</p>
+}
+<div class="sales-detail-grid">
+    <div class="sales-detail-left @(issued ? "sales-invoice-paper" : "sales-draft-paper")">
+        @if (issued) {
+            <partial name="_HoaDonBanHang" model="Model" />
+        } else {
+            <section class="sales-customer-card">
+                <h2>Thông tin khách hàng</h2>
+                <h3>@(Model.KhachHang?.HoTen ?? "Khách lẻ")</h3>
+                <p>@Model.KhachHang?.SDT</p>
+                @if (!string.IsNullOrEmpty(Model.KhachHang?.TenCongTy)) { <p>@Model.KhachHang.TenCongTy · MST: @Model.KhachHang.MaSoThue</p> }
+                @if (!string.IsNullOrEmpty(Model.DiaChiGiao)) { <p class="sales-customer-address">Địa chỉ giao: @Model.DiaChiGiao</p> }
+            </section>
+            <section class="sales-purchased-card">
+                <h2>Chi tiết hàng đã mua</h2>
+                <div class="table-responsive"><table class="table" id="purchasedItemsTable">
+                    <thead><tr><th>Mặt hàng</th><th>Đã mua</th><th>Đã trả</th><th>Còn được trả</th></tr></thead><tbody>
+                    @foreach (var line in Model.ChiTietHoaDons) {
+                        <tr><td>@(line.SanPham?.TenSP ?? line.MaSP)</td><td>@line.SoLuong @(line.SanPham?.DonViTinh)</td><td>@line.SoLuongDaTra</td><td>@line.SoLuongConLai @(line.SanPham?.DonViTinh)</td></tr>
+                    }
+                    </tbody>
+                </table></div>
+                @if (!string.IsNullOrEmpty(Model.GhiChu)) { <p class="sales-detail-note">Ghi chú: @Model.GhiChu</p> }
+            </section>
+        }
+    </div>
+    <aside class="sales-detail-aside @(issued ? "sales-invoice-aside" : "invoice-summary-draft")">
+        <partial name="_SalesPaymentSummary" model="Model" />
+        @if (!issued) {
+            <partial name="_SalesCollectionActions" model="Model" />
+            <div class="invoice-create-actions">
+                @if (ViewBag.CanIssue == true) { <a id="btnCreateInvoice" class="btn btn-thome-primary" asp-action="TaoHoaDon" asp-route-id="@Model.MaHD">Tạo hóa đơn</a> }
+                else { <button id="btnCreateInvoice" class="btn btn-thome-primary" type="button" disabled>Tạo hóa đơn</button><small>Đơn phải thanh toán đủ và chưa có hóa đơn chính thức.</small> }
+                <a class="btn invoice-cancel" href="/BanHang/Index?tab=dontamtinh">Hủy</a>
+            </div>
+        } else {
+            <section class="sales-voucher-actions">
+                <h2>Tạo phiếu từ hóa đơn</h2>
+                @if(active){<a class="btn invoice-cancel" asp-action="TaoPhieuDoiTra" asp-route-id="@Model.MaHD">Tạo phiếu đổi trả</a><a class="btn invoice-cancel" asp-action="TaoPhieuCPPS" asp-route-id="@Model.MaHD">Tạo phiếu chi phí phát sinh</a>}
+                else{<button type="button" class="btn invoice-cancel" disabled>Tạo phiếu đổi trả</button><button type="button" class="btn invoice-cancel" disabled>Tạo phiếu chi phí phát sinh</button>}
+                @if (role is "Chủ cửa hàng" or "Kế toán bán hàng") {
+                    @if (ViewBag.CanOverride == true && active) { <a class="btn invoice-cancel" asp-action="TaoPhieuGhiDe" asp-route-id="@Model.MaHD">Tạo phiếu ghi đè</a> }
+                    else {
+                        <button class="btn invoice-cancel" type="button" disabled>Tạo phiếu ghi đè (Đã khóa)</button>
+                        @if (active) { <button class="btn invoice-cancel" type="button" data-bs-toggle="modal" data-bs-target="#unlockModal">Gửi yêu cầu mở khóa</button> }
+                    }
+                }
+            </section>
+            <div class="sales-invoice-print-actions">
+                <button class="btn btn-thome-primary" type="button" data-print-document="invoiceDocument">In hóa đơn</button>
+                <button class="btn invoice-cancel" type="button" data-bs-toggle="modal" data-bs-target="#sendOnlineModal">Gửi Zalo / Email</button>
+            </div>
+            <partial name="_SalesCollectionActions" model="Model" />
+        }
+    </aside>
+</div>

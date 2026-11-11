@@ -1,0 +1,43 @@
+@model List<THomeApp.Models.HoaDon>
+@{ var activeTab = ViewBag.ActiveTab as string ?? "dontamtinh"; var isHoaDon = activeTab == "hoadon"; ViewData["Title"] = "BÁN HÀNG"; var search = ViewBag.Search as string ?? ""; var status = ViewBag.Status as string ?? ""; }
+@using THomeApp.Helpers
+<link rel="stylesheet" href="~/css/sales.css" asp-append-version="true" />
+<div class="card-thome sales-panel"><div class="p-1">
+<div class="sales-tabs-toolbar"><div class="d-flex gap-2">
+<a href="/BanHang/Index?tab=dontamtinh" class="btn @(!isHoaDon ? "btn-thome-primary" : "btn-light") fw-bold">Đơn tạm tính</a>
+<a href="/BanHang/Index?tab=hoadon" class="btn @(isHoaDon ? "btn-thome-primary" : "btn-light") fw-bold">Hóa đơn</a>
+</div><a class="btn btn-thome-primary fw-bold" href="/BanHang/TaoDonTamTinh">+ Tạo đơn tạm tính</a></div>
+<div class="row g-3 mb-3 sales-list-metrics">
+<div class="col-sm-3"><div class="bg-white rounded p-3"><small class="text-muted">Tổng số đơn</small><h3 class="fw-bold">@Model.Count</h3></div></div>
+<div class="col-sm-3"><div class="bg-white rounded p-3"><small class="text-muted">Chưa thanh toán</small><h3 class="fw-bold">@Model.Count(h=>h.ThuRong == 0)</h3></div></div>
+<div class="col-sm-3"><div class="bg-white rounded p-3"><small class="text-muted">Đã thanh toán đủ</small><h3 class="fw-bold">@Model.Count(h=>h.ConNo == 0 && h.PhaiHoan == 0)</h3></div></div>
+<div class="col-sm-3"><div class="bg-white rounded p-3"><small class="text-muted">Đã lập hóa đơn</small><h3 class="fw-bold">@ViewBag.IssuedCount</h3></div></div>
+</div>
+<form method="get" action="/BanHang/Index" class="row g-3 align-items-end mb-4">
+<input type="hidden" name="tab" value="@activeTab" />
+<div class="col-lg-6"><label class="form-label fw-bold" for="invoiceSearch">Tìm kiếm</label><input class="form-control" name="search" id="invoiceSearch" value="@search" placeholder="Nhập từ khóa tìm kiếm" /></div>
+<div class="col-auto"><button class="btn btn-light border px-4" type="submit">Tìm</button></div>
+<div class="col-lg-3"><label class="form-label fw-bold" for="invoiceStatus">Trạng thái</label>
+<select id="invoiceStatus" name="status" class="form-select" onchange="this.form.submit()">
+<option value="" selected="@(status == "")">Tất cả trạng thái</option>
+@foreach(var value in new[]{SalesListStatus.CompletedLabel,SalesListStatus.IncompleteLabel}){<option value="@value" selected="@(status == value)">@value</option>}
+</select></div>
+<div class="col-auto"><a class="btn btn-light border" href="/BanHang/Index?tab=@activeTab" title="Làm mới">↻</a></div>
+</form>
+<div class="card-thome-body p-2" style="min-height:450px">
+<div class="table-responsive"><table class="table align-middle sales-table"><thead><tr>
+<th>@(isHoaDon ? "Mã hóa đơn" : "Mã đơn")</th><th>Khách hàng</th><th class="text-end">Tổng tiền</th><th class="@(isHoaDon ? "" : "text-end")">@(isHoaDon ? "Mặt hàng" : "Đã thu")</th><th class="text-center">Trạng thái</th>
+</tr></thead><tbody>
+@foreach(var item in Model){<tr data-url="@Url.Action("ChiTietHoaDon",new{id=item.MaHD})" onclick="location.href=this.dataset.url" style="cursor:pointer">
+<td><a class="fw-bold text-decoration-none" href="/BanHang/ChiTietHoaDon?id=@item.MaHD">@(item.MaHoaDon ?? item.MaHD)</a>
+@if(item.SoLanGhiDe>0){<small class="d-block text-muted">Ghi đè: @item.SoLanGhiDe lần</small>}</td>
+<td>@item.KhachHang?.HoTen<small class="d-block text-muted">@item.KhachHang?.SDT</small></td>
+<td class="text-end text-nowrap">@item.TongThanhToan.ToString("N0") đ<small class="d-block text-muted">Còn nợ: @item.ConNo.ToString("N0") đ</small></td>
+<td class="@(isHoaDon ? "" : "text-end text-nowrap")">
+@if(isHoaDon){@foreach(var line in item.ChiTietHoaDons){<div>@(line.SanPham?.TenSP ?? line.MaSP)</div>}}
+else{@item.DaThu.ToString("N0") <span>đ</span>}</td>
+<td class="text-center"><span class="badge @(SalesListStatus.IsCompleted(item) ? "bg-success" : "bg-danger")">@(SalesListStatus.IsCompleted(item) ? SalesListStatus.CompletedLabel : SalesListStatus.IncompleteLabel)</span></td>
+</tr>}
+@if(Model.Count == 0){<tr><td colspan="5" class="text-center py-5 text-muted">Không tìm thấy hóa đơn phù hợp.</td></tr>}
+</tbody></table></div>
+</div></div></div>

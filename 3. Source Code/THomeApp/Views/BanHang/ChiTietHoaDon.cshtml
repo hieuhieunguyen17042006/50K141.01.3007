@@ -1,0 +1,222 @@
+@inject THomeApp.Services.PaymentQr PaymentQr
+@model THomeApp.Models.HoaDon
+@{
+    var isHoaDon = Model.LoaiChungTu == "HoaDon";
+    ViewData["Title"] = isHoaDon ? "Chi tiết hóa đơn" : "Chi tiết đơn tạm tính";
+    var userRole = ViewBag.UserRole as string ?? "Nhân viên bán hàng";
+    var sanPhams = ViewBag.SanPhams as List<THomeApp.Models.SanPham> ?? new();
+    var returnable = ViewBag.ReturnableLines as List<ReturnableLine> ?? new();
+    var collectionAmount = Model.TyLeDatCoc > 0 && Model.DaThu == 0 ? Math.Min(Model.TienDatCoc, Model.ConNo) : Model.ConNo;
+}
+<link rel="stylesheet" href="~/css/invoices.css" asp-append-version="true" />
+
+<link rel="stylesheet" href="~/css/sales.css" asp-append-version="true" />
+<div class="sales-detail-page">
+    <partial name="_SalesDetailTop" model="Model" />
+    <details class="sales-detail-history">
+        <summary>Lịch sử thu tiền, giao hàng và chứng từ liên quan</summary>
+        <partial name="_SalesHistory" model="Model" />
+    </details>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL 1: THU TIỀN / QR CODE -->
+<!-- ========================================== -->
+<div class="modal fade" id="collectMoneyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header modal-header-thome">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-qrcode me-2"></i> Thu tiền chứng từ @Model.MaHD</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="post" action="/BanHang/XacNhanThuTien">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="maHD" value="@Model.MaHD" />
+
+                    <div class="mb-3 text-center">
+                        <img src="@Url.Action("Invoice", "Qr", new { id = Model.MaHD, amount = collectionAmount.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) })"
+                             id="collectQr" alt="Mã QR đơn hàng" style="width: 220px; height: 220px; object-fit: contain;" class="border p-2 rounded shadow-sm mb-2" />
+                        <div class="small text-muted">@PaymentQr.Label</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Số tiền thu (VNĐ) <span class="text-danger">*</span></label>
+                        <input type="number" id="collectAmount" name="soTienThu" oninput="document.getElementById('collectQr').src='/Qr/Invoice?id=@Model.MaHD&amount='+this.value" class="form-control fw-bold fs-5 text-primary" value="@(collectionAmount.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))" max="@(Model.ConNo.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))" min="1" required />
+                        <small class="text-muted">Số còn nợ tối đa có thể thu: <strong>@string.Format("{0:N0} đ", Model.ConNo)</strong></small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Hình thức thu:</label>
+                        <select name="phuongThuc" class="form-select">
+                            <option value="Chuyển khoản">Chuyển khoản (VietQR / Ngân hàng)</option>
+                            <option value="Tiền mặt">Tiền mặt tại quầy / tại công trình</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Nội dung thu:</label>
+                        <input type="text" name="noiDung" class="form-control" value="@(Model.TyLeDatCoc > 0 && Model.DaThu == 0 ? "Thu tiền đặt cọc đơn " + Model.MaHD : "Thu tiền đơn hàng " + Model.MaHD)" />
+                    </div>
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-success fw-bold py-2">
+                            <i class="fa-solid fa-check-circle me-1"></i> Xác nhận ĐÃ THU TIỀN
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL 4: YÊU CẦU MỞ KHÓA GHI ĐÈ (Khi chạm mốc 7 lần) (Figma: Cửa sổ thông báo thao tác bị khóa.png) -->
+<!-- ========================================== -->
+<div class="modal fade" id="unlockModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-lock me-2"></i> Thao tác bị chặn do vượt quá giới hạn!</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="alert alert-danger small mb-3">
+                    <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                    Hóa đơn này đã thực hiện ghi đè <strong>@Model.SoLanGhiDe lần</strong> (vượt giới hạn 6 lần theo BR-UC2.6-01). Hệ thống đã tự động khóa quyền thao tác để phòng ngừa gian lận.
+                </div>
+
+                <form method="post" action="/BanHang/GuiYeuCauMoKhoa">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="maHD" value="@Model.MaHD" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Lý do xin mở khóa quyền: <span class="text-danger">*</span></label>
+                        <textarea name="lyDoMoKhoa" class="form-control" rows="3" required placeholder="Vui lòng nêu rõ lý do cần chỉnh sửa thêm để Chủ cửa hàng xét duyệt..."></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+                        <button type="submit" class="btn btn-danger fw-bold">
+                            <i class="fa-solid fa-paper-plane me-1"></i> Gửi yêu cầu tới Chủ cửa hàng
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL 5: CẬP NHẬT ĐỢT GIAO HÀNG (Đơn công trình) -->
+<!-- ========================================== -->
+<div class="modal fade" id="addDeliveryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header modal-header-thome">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-truck-ramp-box me-2"></i> Thêm đợt giao hàng công trình</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="post" action="/BanHang/ThemDotGiaoHang">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="maHD" value="@Model.MaHD" />
+                    @{ int nextDot = Model.DotGiaoHangs.Count + 1; }
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Đợt giao thứ:</label>
+                        <input type="number" name="dotThu" class="form-control" value="@nextDot" readonly />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Người giao / Xe tải:</label>
+                        <input type="text" name="nguoiGiao" class="form-control" placeholder="Tài xế, số điện thoại..." />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Ghi chú tiến độ:</label>
+                        <textarea name="ghiChu" class="form-control" rows="2" placeholder="Giao tầng nào, ai nghiệm thu..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Chọn số lượng hàng giao đợt này:</label>
+                        @for (int i = 0; i < Model.ChiTietHoaDons.Count; i++)
+                        {
+                            var ct = Model.ChiTietHoaDons.ElementAt(i);
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small">@(ct.SanPham?.TenSP ?? ct.MaSP):</span>
+                                <input type="hidden" name="items[@i].MaSP" value="@ct.MaSP" />
+                                <input type="number" name="items[@i].SoLuong" class="form-control form-control-sm text-center" style="width: 100px;" value="@Math.Max(ct.SoLuong - Model.DotGiaoHangs.SelectMany(d => d.ChiTietGiaoHangs).Where(c => c.MaSP == ct.MaSP).Sum(c => c.SoLuongGiao),0)" min="0" max="@Math.Max(ct.SoLuong - Model.DotGiaoHangs.SelectMany(d => d.ChiTietGiaoHangs).Where(c => c.MaSP == ct.MaSP).Sum(c => c.SoLuongGiao),0)" />
+                            </div>
+                        }
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-thome-primary fw-bold">Lưu đợt giao</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL 6: GỬI HÓA ĐƠN QUA ZALO / EMAIL (UC_2.3) -->
+<!-- ========================================== -->
+<div class="modal fade" id="sendOnlineModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header modal-header-thome">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-paper-plane me-2"></i> Gửi hóa đơn điện tử</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Chọn kênh gửi:</label>
+                    <div class="d-flex gap-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="sendChannel" id="channelZalo" value="Zalo" checked>
+                            <label class="form-check-label fw-semibold" for="channelZalo">
+                                <i class="fa-solid fa-comment-sms text-primary me-1"></i> Zalo OA Khách hàng (@(Model.KhachHang?.SDT ?? "Chưa có SĐT"))
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="sendChannel" id="channelEmail" value="Email">
+                            <label class="form-check-label fw-semibold" for="channelEmail">
+                                <i class="fa-solid fa-envelope text-danger me-1"></i> Email (@(Model.KhachHang?.Email ?? "Chưa có Email"))
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info small mb-3">
+                    <i class="fa-solid fa-circle-info me-1"></i>
+                    Bạn có thể in hoặc lưu hóa đơn thành PDF để gửi thủ công. Kênh Zalo / Email chưa kết nối.
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-primary fw-bold py-2" onclick="bootstrap.Modal.getInstance(document.getElementById('sendOnlineModal')).hide();window.print()">
+                        <i class="fa-solid fa-paper-plane me-1"></i> In / lưu PDF
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
+                        <i class="fa-solid fa-download me-1"></i> Tải bản PDF về máy
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@if (Model.PhaiHoan > 0)
+{
+<div class="modal fade" id="refundModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+<div class="modal-header"><h5>Xác nhận đã hoàn tiền cho khách</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+<div class="modal-body"><form method="post" action="/BanHang/XacNhanHoanTien">
+@Html.AntiForgeryToken()<input type="hidden" name="maHD" value="@Model.MaHD" />
+<label class="form-label">Số tiền thực hoàn</label><input name="soTien" type="number" class="form-control mb-3" min="1" max="@(Model.PhaiHoan.ToString(System.Globalization.CultureInfo.InvariantCulture))" value="@(Model.PhaiHoan.ToString(System.Globalization.CultureInfo.InvariantCulture))" required />
+<label class="form-label">Hình thức chi</label><select class="form-select mb-3" name="phuongThuc"><option>Tiền mặt</option><option>Chuyển khoản</option></select>
+<label class="form-label">Lý do / chứng từ chuyển tiền</label><input class="form-control mb-3" name="lyDo" maxlength="500" required />
+<button class="btn btn-thome-primary" type="submit">Xác nhận ĐÃ HOÀN TIỀN</button></form></div></div></div></div>
+}

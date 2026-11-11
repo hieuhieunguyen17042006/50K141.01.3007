@@ -1,0 +1,56 @@
+# Build outputs and IDE state
+**/bin/
+**/obj/
+**/.vs/
+**/.idea/
+**/.vscode/
+**/node_modules/
+**/__pycache__/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Private settings, credentials and deployment profiles
+**/appsettings.Local.json
+**/appsettings.*.Local.json
+**/appsettings.Production.json
+**/appsettings.Staging.json
+**/secrets.json
+**/.env
+**/.env.*
+!**/.env.example
+**/Properties/PublishProfiles/
+**/DataProtection-Keys/
+*.pfx
+*.p12
+*.pem
+*.key
+*.snk
+
+# Local databases, logs, temporary files and archives
+*.mdf
+*.ldf
+*.db
+*.db-shm
+*.db-wal
+*.bak
+*.log
+*.pid
+*.tmp
+*.temp
+*.zip
+*.7z
+~$*
+
+# Workspace-only Word/image inspection scripts and test evidence.
+# Group documents already tracked under sections 1 and 2 remain tracked.
+/artifacts/
+/tools/
+/*.py
+/*.txt
+/*.json
+/*.docx
+/*_REPORT.md
+/ảnh figma nhân viên/
+/ảnh figma tổng chủ/

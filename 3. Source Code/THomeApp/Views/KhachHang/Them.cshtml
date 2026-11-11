@@ -1,0 +1,119 @@
+@model THomeApp.Models.KhachHang
+@{
+    ViewData["Title"] = "Thêm thông tin khách hàng mới";
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="card-thome shadow-sm">
+            <div class="card-thome-header">
+                <h5 class="card-thome-title">
+                    <i class="fa-solid fa-user-plus text-primary"></i> Phiếu thêm khách hàng mới
+                </h5>
+                <a href="/KhachHang/Index" class="btn btn-sm btn-outline-secondary">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Quay lại
+                </a>
+            </div>
+            <div class="card-thome-body p-4">
+                <form method="post" asp-action="Them">
+                    @Html.AntiForgeryToken()
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger" asp-validation-summary="All"></div>
+                    }
+
+                    <div class="row g-3">
+                        <!-- Loại khách -->
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold small">Loại khách hàng <span class="text-danger">*</span></label>
+                            <select name="LoaiKhach" id="loaiKhachSelect" class="form-select" onchange="toggleCompanyFields(this.value)">
+                                <option value="Cá nhân">Cá nhân</option>
+                                <option value="Doanh nghiệp">Doanh nghiệp</option>
+                            </select>
+                        </div>
+
+                        <!-- Giới tính -->
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold small">Giới tính</label>
+                            <select name="GioiTinh" class="form-select">
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+
+                        <!-- Họ và tên -->
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold small">Họ và tên <span class="text-danger">*</span></label>
+                            <input type="text" name="HoTen" class="form-control" required placeholder="Nhập họ và tên đầy đủ" />
+                        </div>
+
+                        <!-- Số điện thoại -->
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold small">Số điện thoại <span class="text-danger">*</span></label>
+                            <input type="text" name="SDT" class="form-control" required placeholder="0xxxxxxxxx (10 số)" maxlength="10" />
+                            <small class="text-muted" style="font-size: 11px;">Bắt đầu bằng 0, gồm 10 số, không trùng (BR-UC3.1-02)</small>
+                        </div>
+
+                        <!-- Ngày sinh -->
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold small">Ngày sinh</label>
+                            <input type="date" name="NgaySinh" class="form-control" />
+                        </div>
+
+                        <!-- Email -->
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold small">Email</label>
+                            <input type="email" name="Email" class="form-control" placeholder="khachhang@domain.com" />
+                        </div>
+
+                        <!-- Doanh nghiệp Fields -->
+                        <div id="companyFields" style="display: none;" class="col-12">
+                            <div class="card bg-light border p-3">
+                                <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-building me-1"></i> Thông tin pháp nhân doanh nghiệp</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-7">
+                                        <label class="form-label fw-bold small">Tên công ty / Đơn vị thầu <span class="text-danger">*</span></label>
+                                        <input type="text" name="TenCongTy" id="inputTenCongTy" class="form-control" placeholder="Công ty TNHH..." />
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label fw-bold small">Mã số thuế <span class="text-danger">*</span></label>
+                                        <input type="text" name="MaSoThue" id="inputMaSoThue" class="form-control" placeholder="10 hoặc 13 chữ số" maxlength="13" />
+                                        <small class="text-muted" style="font-size: 11px;">10 hoặc 13 chữ số (BR-UC3.1-03)</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Địa chỉ -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold small">Địa chỉ liên hệ</label>
+                            <input type="text" name="DiaChi" class="form-control" placeholder="Số nhà, tên đường, quận/huyện, tỉnh/thành phố" />
+                        </div>
+
+                        <!-- Ghi chú -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold small">Ghi chú</label>
+                            <textarea name="GhiChu" class="form-control" rows="2" placeholder="Ghi chú sở thích, thói quen mua hàng..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
+                        <a href="/KhachHang/Index" class="btn btn-outline-secondary px-4">Hủy</a>
+                        <button type="submit" class="btn btn-thome-primary px-4 fw-bold">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> Lưu thông tin khách hàng
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function toggleCompanyFields(val) {
+        document.getElementById('companyFields').style.display = val === 'Doanh nghiệp' ? 'block' : 'none';
+    }
+</script>
+}

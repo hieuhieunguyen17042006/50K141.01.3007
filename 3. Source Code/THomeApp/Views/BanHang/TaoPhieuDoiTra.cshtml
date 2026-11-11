@@ -1,0 +1,45 @@
+@using System.Globalization
+@model HoaDon
+@{ViewData["Title"]="Tạo phiếu đổi trả";var lines=ViewBag.ReturnableLines as List<ReturnableLine>??new();var products=ViewBag.Products as List<SanPham>??new();string Money(decimal n)=>n.ToString("N0",CultureInfo.GetCultureInfo("vi-VN"))+" đ";}
+@section Styles {<link rel="stylesheet" href="~/css/vouchers.css" asp-append-version="true" />}
+<div class="voucher-page" data-voucher-kind="return">
+    <header class="voucher-page-heading"><h1>Chi tiết hóa đơn</h1></header>
+    <section class="voucher-shell"><h2>Tạo phiếu đổi trả</h2>
+    <form method="post" asp-action="TaoPhieuDoiTra" class="voucher-form" id="returnForm" novalidate>
+    <input type="hidden" name="maHD" value="@Model.MaHD" /><input type="hidden" name="loaiPhieu" value="TraHang" />
+    <div class="voucher-error" role="alert" hidden>Không hợp lệ!</div>
+    <div class="voucher-grid"><div class="voucher-main">
+        <div class="voucher-return-top"><section><h3>Hóa đơn: @(Model.MaHoaDon??Model.MaHD)</h3><p>Tên: @Model.KhachHang?.HoTen<br />SĐT: @Model.KhachHang?.SDT</p></section>
+            <div class="voucher-tabs" role="tablist" aria-label="Loại phiếu"><button type="button" role="tab" aria-selected="true" data-return-mode="TraHang">Trả hàng</button><button type="button" role="tab" aria-selected="false" data-return-mode="DoiHang">Đổi hàng</button></div>
+        </div>
+        <h4>Thông tin đơn hàng</h4><span data-error-for="returns"></span>
+        <div class="table-responsive"><table class="voucher-table" id="returnItems"><thead><tr><th>Mặt hàng</th><th>Số lượng mua</th><th id="returnQuantityHeading">SL trả</th><th id="returnValueHeading">Giá trị trả</th></tr></thead><tbody>
+        @for(var i=0;i<lines.Count;i++){var line=lines[i];<tr data-source-product="@line.MaSP" data-source-voucher-line="@line.SourceVoucherLineId" data-remaining="@line.Remaining" data-price="@line.Price.ToString(CultureInfo.InvariantCulture)">
+            <td><label class="voucher-item-choice"><input type="checkbox" aria-label="Chọn @line.MaSP" disabled="@(line.Remaining==0)" /><span>@line.Name<small>Đã trả: @(line.Purchased-line.Remaining) · Còn được trả: @line.Remaining @line.Unit</small>@if(line.SourceVoucher!=null){<small>Từ phiếu @line.SourceVoucher</small>}</span></label></td>
+            <td>@line.Purchased @line.Unit</td><td><input type="number" class="form-control return-quantity" aria-label="Số lượng trả @line.MaSP" min="1" max="@line.Remaining" step="1" value="0" disabled /><span class="voucher-field-error"></span></td><td class="return-line-value">0 đ</td>
+        </tr>}
+        </tbody></table></div>
+        <label class="voucher-condition">Tình trạng hàng <em>*</em><select name="tinhTrangHang" class="form-select" required><option value="">Chọn tình trạng</option><option>Còn nguyên vẹn</option><option>Hư hỏng</option></select><span data-error-for="tinhTrangHang"></span></label>
+        <label>Lý do <span data-return-word>trả</span> hàng <em>*</em><textarea name="lyDo" class="form-control" rows="2" maxlength="500" required placeholder="Nhập lý do"></textarea><span data-error-for="lyDo"></span></label>
+        <div id="exchangeSection" class="voucher-exchange" hidden>
+            <label>Sản phẩm đổi mới<select id="selectSPDoi" name="maSPDoi" class="form-select" disabled><option value="">Chọn sản phẩm</option>
+                @foreach(var p in products){var price=p.LichSuGia.Where(g=>g.NgayApDung<=DateTime.Now).OrderByDescending(g=>g.NgayApDung).ThenByDescending(g=>g.MaGia).FirstOrDefault()?.DonGia??0;if(price>0){<option value="@p.MaSP" data-price="@price.ToString(CultureInfo.InvariantCulture)">@p.TenSP (@p.MaSP) — @Money(price) / @p.DonViTinh</option>}}
+            </select><span data-error-for="maSPDoi"></span></label>
+            <label>Số lượng<input type="number" id="exchangeQty" name="soLuongDoi" class="form-control" min="1" max="100000" step="1" value="1" disabled /><span data-error-for="soLuongDoi"></span></label><div><h4>Giá trị</h4><strong id="exchangeLineValue">0 đ</strong></div>
+        </div>
+        <div class="voucher-return-bottom"><div><span>Chênh lệch</span><strong data-return-difference>0 đ</strong></div><div><span>Phải hoàn khách</span><strong data-return-refund>0 đ</strong></div><div><span>Khách cần trả thêm</span><strong data-return-extra>0 đ</strong></div><div class="voucher-total"><span>Tổng phải thu sau điều chỉnh</span><strong id="returnNewTotal">@Money(Model.TongThanhToan)</strong></div></div>
+    </div><aside class="voucher-side"><section class="voucher-summary"><h3>Phương án xử lý tiền hoàn</h3>
+        <fieldset class="voucher-refund-choice"><legend class="visually-hidden">Phương án xử lý</legend><label><input type="radio" name="hinhThucXuLy" value="HoanTienTrucTiep" checked="@(Model.ConNo==0)" /> Hoàn tiền trực tiếp</label><label><input type="radio" name="hinhThucXuLy" value="CanTruCongNo" checked="@(Model.ConNo>0)" /> Cấn trừ công nợ</label><span data-error-for="hinhThucXuLy"></span></fieldset>
+        <div><span>Giá trị hàng trả</span><strong id="displayReturnVal">0 đ</strong></div><div data-exchange-only hidden><span>Giá trị hàng mới</span><strong id="displayExchangeVal">0 đ</strong></div>
+        <div><span>Công nợ hiện tại</span><strong>@Money(Model.ConNo)</strong></div>
+        <div class="voucher-emphasis"><span>Chênh lệch</span><strong data-return-difference>0 đ</strong></div>
+        <div><span>Tiền cấn công nợ</span><strong id="returnOffset">0 đ</strong></div><div><span>Tiền phải hoàn</span><strong id="returnRefund" data-return-refund>0 đ</strong></div><div><span>Khách cần trả thêm</span><strong id="returnExtra" data-return-extra>0 đ</strong></div>
+        <div><span>Đã hoàn thực tế từ phiếu này</span><strong>0 đ</strong></div>
+    </section><p class="voucher-hint" id="returnPlanHint">Chỉ ghi nhận đã hoàn khi có xác nhận chi tiền thực tế.</p><partial name="_VoucherActions" model="Model" /></aside></div>
+    </form></section>
+</div>
+<partial name="_VoucherResult" />
+@section Scripts {
+<script id="voucherData" type="application/json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new{total=Model.TongThanhToan,paid=Model.DaThu,netPaid=Model.ThuRong,debt=Model.ConNo,refund=Model.PhaiHoan}))</script>
+<script src="~/js/vouchers.js" asp-append-version="true"></script>
+}

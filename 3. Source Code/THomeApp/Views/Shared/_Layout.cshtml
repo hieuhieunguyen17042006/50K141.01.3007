@@ -1,0 +1,529 @@
+@using System.Security.Claims
+@{
+    var userRole = User.FindFirstValue(ClaimTypes.Role) ?? "Nhân viên bán hàng";
+    var userName = User.Identity?.Name ?? "Người dùng";
+    var userMaNV = User.FindFirstValue("MaNV") ?? "";
+    var currentCtrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "Home";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "Index";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - T-HOME Quản Lý Bán Hàng</title>
+    <link href="/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/lib/fontawesome/css/all.min.css" rel="stylesheet" />
+    <link href="/lib/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --thome-navy: #003a70;
+            --thome-navy-dark: #00274d;
+            --thome-navy-active: #004d94;
+            --thome-blue: #009fe9;
+            --thome-blue-light: #e0f2fe;
+            --thome-bg: #f8fafc;
+            --sidebar-width: 250px;
+            --topbar-height: 64px;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            background-color: var(--thome-bg);
+            color: #1e293b;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .app-sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--thome-navy);
+            color: #ffffff;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.15);
+        }
+
+        .sidebar-brand {
+            height: var(--topbar-height);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 20px;
+            background-color: var(--thome-navy-dark);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            text-decoration: none;
+            color: #ffffff;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--thome-blue);
+            color: #ffffff;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .brand-title {
+            font-weight: 800;
+            font-size: 20px;
+            letter-spacing: 0.5px;
+            margin: 0;
+            line-height: 1.1;
+        }
+
+        .brand-subtitle {
+            font-size: 10px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+
+        .sidebar-menu {
+            flex: 1;
+            padding: 15px 0;
+            overflow-y: auto;
+            list-style: none;
+            margin: 0;
+        }
+
+        .menu-header {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #94a3b8;
+            padding: 10px 24px 6px;
+            font-weight: 700;
+        }
+
+        .menu-item {
+            margin: 4px 12px;
+        }
+
+        .menu-link {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 11px 16px;
+            color: #cbd5e1;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .menu-link i {
+            font-size: 17px;
+            width: 22px;
+            text-align: center;
+            color: #93c5fd;
+        }
+
+        .menu-link:hover {
+            color: #ffffff;
+            background-color: var(--thome-navy-dark);
+        }
+
+        .menu-item.active .menu-link {
+            background-color: var(--thome-blue);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 159, 233, 0.35);
+        }
+
+        .menu-item.active .menu-link i {
+            color: #ffffff;
+        }
+
+        .sidebar-user {
+            padding: 14px 16px;
+            background-color: var(--thome-navy-dark);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #ffffff;
+            color: var(--thome-navy);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .user-meta {
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1.2;
+        }
+
+        .user-role-badge {
+            font-size: 11px;
+            color: var(--thome-blue);
+            font-weight: 600;
+        }
+
+        .btn-logout {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+
+        .btn-logout:hover {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Main Content Layout */
+        .app-main {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            width: calc(100% - var(--sidebar-width));
+        }
+
+        /* Topbar */
+        .app-topbar {
+            height: var(--topbar-height);
+            background-color: var(--thome-blue);
+            color: #ffffff;
+            padding: 0 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .page-title {
+            font-size: 18px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0;
+            color: #ffffff;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .store-tag {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Content Area */
+        .app-content {
+            padding: 24px 28px;
+            flex: 1;
+        }
+
+        /* Card System */
+        .card-thome {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-bottom: 24px;
+        }
+
+        .card-thome-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #ffffff;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+
+        .card-thome-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--thome-navy);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-thome-body {
+            padding: 20px;
+        }
+
+        /* Status Badges */
+        .badge-status {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .badge-success-soft { background: #dcfce7; color: #15803d; }
+        .badge-warning-soft { background: #fef9c3; color: #854d0e; }
+        .badge-danger-soft { background: #fee2e2; color: #b91c1c; }
+        .badge-info-soft { background: #e0f2fe; color: #0369a1; }
+        .badge-secondary-soft { background: #f1f5f9; color: #475569; }
+
+        /* Buttons */
+        .btn-thome-primary {
+            background-color: var(--thome-navy);
+            color: #ffffff;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+        }
+        .btn-thome-primary:hover {
+            background-color: var(--thome-navy-dark);
+            color: #ffffff;
+        }
+
+        .btn-thome-secondary {
+            background-color: var(--thome-blue);
+            color: #ffffff;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+        }
+        .btn-thome-secondary:hover {
+            background-color: #0088cc;
+            color: #ffffff;
+        }
+
+        /* Modals */
+        .modal-header-thome {
+            background-color: var(--thome-navy);
+            color: #ffffff;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+    </style>
+    <script src="/js/documents.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Styles", required: false)
+<link rel="stylesheet" href="/css/figma.css" asp-append-version="true" />
+<link rel="stylesheet" href="/css/document-print.css" asp-append-version="true" />
+</head>
+<body class="role-@(userRole == "Chủ cửa hàng" ? "owner" : "employee")">
+
+<!-- SIDEBAR -->
+<aside class="app-sidebar">
+    <a href="/Home/Index" class="sidebar-brand">
+        <img src="/images/thome-logo.png" alt="T-HOME" />
+    </a>
+
+    <ul class="sidebar-menu">
+        <div class="menu-header">Hệ thống</div>
+        @if (userRole == "Chủ cửa hàng") {
+        <li class="menu-item @(currentCtrl == "Home" ? "active" : "")">
+            <a href="/Home/Index" class="menu-link">
+                <i class="fa-solid fa-house"></i>
+                <span>Trang chủ</span>
+            </a>
+        </li>
+
+        }
+        <div class="menu-header">Nghiệp vụ</div>
+        <li class="menu-item @(currentCtrl == "BanHang" ? "active" : "")">
+            <a href="/BanHang/Index" class="menu-link">
+                <i class="fa-regular fa-file-lines"></i>
+                <span>Bán hàng</span>
+            </a>
+        </li>
+
+        <li class="menu-item @(currentCtrl == "KhachHang" ? "active" : "")">
+            <a href="/KhachHang/Index" class="menu-link">
+                <i class="fa-solid fa-users"></i>
+                <span>Khách hàng</span>
+            </a>
+        </li>
+
+        @if (userRole == "Chủ cửa hàng")
+        {
+            <div class="menu-header">Quản trị cửa hàng</div>
+            <li class="menu-item @(currentCtrl == "CuaHang" ? "active" : "")">
+                <a href="/CuaHang/YeuCauMoKhoa" class="menu-link">
+                    <i class="fa-solid fa-store"></i>
+                    <span>Cửa hàng</span>
+                </a>
+                @if (currentCtrl == "CuaHang") {
+                    <nav class="store-submenu" aria-label="Chức năng Cửa hàng">
+                        <a class="@(currentAction == "YeuCauMoKhoa" ? "selected" : "")" href="/CuaHang/YeuCauMoKhoa">Yêu cầu mở khóa</a>
+                        <a class="@(currentAction is "Index" or "SuaSanPham" ? "selected" : "")" href="/CuaHang/Index">Sản phẩm</a>
+                        <a class="@(currentAction == "ChietKhau" ? "selected" : "")" href="/CuaHang/ChietKhau">Ưu đãi chiết khấu</a>
+                        <a class="@(currentAction == "LichSuHoatDong" ? "selected" : "")" href="/CuaHang/LichSuHoatDong">Lịch sử hoạt động</a>
+                    </nav>
+                }
+            </li>
+
+            <li class="menu-item @(currentCtrl == "NhanVien" ? "active" : "")">
+                <a href="/NhanVien/Index" class="menu-link">
+                    <i class="fa-solid fa-user-tie"></i>
+                    <span>Nhân viên</span>
+                </a>
+            </li>
+        }
+        @if (userRole == "Chủ cửa hàng" || userRole == "Kế toán bán hàng")
+        {
+            <li class="menu-item @(currentCtrl == "DoanhThu" ? "active" : "")">
+                <a href="/DoanhThu/Index" class="menu-link">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Doanh thu</span>
+                </a>
+            </li>
+        }
+
+    </ul>
+
+    <div class="sidebar-user">
+        <div class="user-info">
+            <div class="user-avatar">
+                @(userName.Length > 0 ? userName.Substring(0, 1).ToUpper() : "U")
+            </div>
+            <div class="user-meta">
+                <div class="user-name">@userName</div>
+                <div class="user-role-badge">@userRole</div>
+            </div>
+        </div>
+        <button type="button" class="btn-logout" title="Đăng xuất" data-bs-toggle="modal" data-bs-target="#logoutConfirmModal">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+    </div>
+</aside>
+
+<!-- MAIN APP -->
+<main class="app-main">
+    <!-- TOPBAR -->
+    <header class="app-topbar">
+        <div class="topbar-left">
+            <h1 class="page-title">@ViewData["Title"]</h1>
+        </div>
+        <div class="topbar-right">
+            <div class="store-tag">
+                <i class="fa-solid fa-location-dot"></i> Showroom Đà Nẵng
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-white small fw-bold"><i class="fa-regular fa-clock me-1"></i> @DateTime.Now.ToString("dd/MM/yyyy")</span>
+                <span class="badge bg-light text-primary fw-bold px-2 py-1">@userRole</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENT -->
+    <div class="app-content">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-3" role="alert">
+                <i class="fa-solid fa-circle-check fs-5 me-2"></i>
+                <div>@TempData["SuccessMessage"]</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-3" role="alert">
+                <i class="fa-solid fa-triangle-exclamation fs-5 me-2"></i>
+                <div>@TempData["ErrorMessage"]</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["WarningMessage"] != null)
+        {
+            <div class="alert alert-warning alert-dismissible fade show d-flex align-items-center mb-3" role="alert">
+                <i class="fa-solid fa-bell fs-5 me-2"></i>
+                <div>@TempData["WarningMessage"]</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <h2 class="screen-title">@ViewData["Title"]</h2>
+        @RenderBody()
+    </div>
+</main>
+
+<!-- MODAL CẢNH BÁO ĐĂNG XUẤT (Figma: Cảnh báo có muốn đăng xuất.png) -->
+<div class="modal fade" id="logoutConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-body text-center p-4">
+                <div class="text-warning mb-3">
+                    <i class="fa-solid fa-circle-question" style="font-size: 54px;"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Đăng xuất tài khoản</h5>
+                <p class="text-muted small mb-4">Bạn có chắc chắn muốn đăng xuất khỏi hệ thống T-HOME không?</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <button type="button" class="btn btn-outline-secondary px-4 fw-bold" data-bs-dismiss="modal">Hủy</button>
+                    <a href="/Auth/Logout" class="btn btn-danger px-4 fw-bold">Đăng xuất</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/documents.js" asp-append-version="true"></script>
+<script src="/js/document-print.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

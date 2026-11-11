@@ -1,0 +1,13 @@
+@using System.Globalization
+@model CustomerPurchases
+@{ViewData["Title"]="Hóa đơn đã mua";string Money(decimal value)=>value.ToString("N0",CultureInfo.GetCultureInfo("vi-VN"))+" đ";}
+@section Styles {<link rel="stylesheet" href="~/css/catalog.css" asp-append-version="true" />}
+<div class="catalog-page customer-page">
+    <header class="catalog-page-heading"><h1>Hóa đơn đã mua</h1><a class="catalog-white" asp-action="Index" asp-route-customer="@Model.Customer.MaKH">Quay lại khách hàng</a></header>
+    <section class="catalog-panel"><h2>@Model.Customer.HoTen — @Model.Customer.MaKH</h2><p>@Model.Customer.SDT · Tổng giá trị mua tích lũy: @Money(Model.Customer.TongTichLuy)</p>
+        <div class="catalog-table-wrap table-responsive"><table class="catalog-table" id="customerInvoicesTable" data-customer-code="@Model.Customer.MaKH"><thead><tr><th>Mã hóa đơn</th><th>Ngày lập</th><th>Tổng thanh toán</th><th>Chiết khấu đã chốt</th><th>Đã thu</th><th>Còn nợ</th></tr></thead><tbody>
+        @foreach(var invoice in Model.Invoices){<tr><td><a asp-controller="BanHang" asp-action="ChiTietHoaDon" asp-route-id="@invoice.MaHD">@(invoice.MaHoaDon??invoice.MaHD)</a></td><td>@((invoice.NgayPhatHanh??invoice.NgayTao).ToString("dd/MM/yyyy"))</td><td>@Money(invoice.TongThanhToan)</td><td>@Money(invoice.TienChietKhau)</td><td>@Money(invoice.ThuRong)</td><td>@Money(invoice.ConNo)</td></tr>}
+        @if(Model.Invoices.Count==0){<tr><td colspan="6" class="catalog-empty">Khách hàng chưa có hóa đơn đã mua.</td></tr>}
+        </tbody></table></div>
+    </section>
+</div>

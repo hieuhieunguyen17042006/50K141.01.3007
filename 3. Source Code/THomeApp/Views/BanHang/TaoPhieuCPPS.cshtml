@@ -1,0 +1,34 @@
+@using System.Globalization
+@model HoaDon
+@{ViewData["Title"]="Tạo phiếu chi phí phát sinh";string Money(decimal n)=>n.ToString("N0",CultureInfo.GetCultureInfo("vi-VN"))+" đ";}
+@section Styles {<link rel="stylesheet" href="~/css/vouchers.css" asp-append-version="true" />}
+<div class="voucher-page" data-voucher-kind="expense">
+    <header class="voucher-page-heading"><h1>Chi tiết hóa đơn</h1></header>
+    <section class="voucher-shell"><h2>Tạo phiếu chi phí phát sinh</h2>
+    <p class="voucher-reference">Hóa đơn: @(Model.MaHoaDon??Model.MaHD) · @Model.KhachHang?.HoTen</p>
+    <form method="post" asp-action="TaoPhieuCPPS" class="voucher-form" id="cppsForm" novalidate>
+        <input type="hidden" name="maHD" value="@Model.MaHD" />
+        <div class="voucher-error" role="alert" hidden>Không hợp lệ!</div>
+        <div class="voucher-grid expense-grid"><div class="voucher-main expense-fields">
+            <label>Chi phí phát sinh (đ) <em>*</em><input id="cppsAmount" name="soTien" type="number" min="1" step="0.01" class="form-control" placeholder="Nhập số tiền" required /><span data-error-for="soTien"></span></label>
+            <label>Lý do phát sinh <em>*</em><textarea name="lyDo" class="form-control" maxlength="500" rows="5" required placeholder="Nhập lý do phát sinh"></textarea><span data-error-for="lyDo"></span></label>
+            <details class="voucher-expense-options"><summary>Phân loại chi phí và phương thức</summary>
+                <label>Loại chi phí<select name="loaiChiPhi" id="cppsCategory" class="form-select"><option value="ThuThemKhach">Thu thêm của khách</option><option value="CuaHangChi">Cửa hàng tự chi thực tế</option></select><span data-error-for="loaiChiPhi"></span></label>
+                <label>Phương thức<select name="phuongThuc" class="form-select"><option>Tiền mặt</option><option>Chuyển khoản</option></select><span data-error-for="phuongThuc"></span></label>
+            </details>
+        </div><aside class="voucher-side expense-side"><section class="voucher-summary"><h3>Dự kiến sau khi lưu</h3>
+            <div><span>Tổng đơn hiện tại</span><strong>@Money(Model.TongThanhToan)</strong></div>
+            <div><span>Chi phí bổ sung</span><strong id="cppsAddition">0 đ</strong></div>
+            <div class="voucher-total"><span>TỔNG PHẢI THU</span><strong id="cppsNewTotal">@Money(Model.TongThanhToan)</strong></div>
+            <div><span>Đã thu</span><strong id="cppsCollected">@Money(Model.DaThu)</strong></div>
+            @if(Model.DaHoanKhach>0){<div><span>Đã hoàn thực tế</span><strong>@Money(Model.DaHoanKhach)</strong></div>}
+            <div class="voucher-emphasis"><span>Còn nợ dự kiến</span><strong id="cppsNewDebt">@Money(Model.ConNo)</strong></div>
+        </section><p class="voucher-hint" id="expenseHint">Phí chưa thu không thay đổi số tiền đã thu.</p>
+        <partial name="_VoucherActions" model="Model" /></aside></div>
+    </form></section>
+</div>
+<partial name="_VoucherResult" />
+@section Scripts {
+<script id="voucherData" type="application/json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new{total=Model.TongThanhToan,paid=Model.DaThu,netPaid=Model.ThuRong,debt=Model.ConNo,refund=Model.PhaiHoan}))</script>
+<script src="~/js/vouchers.js" asp-append-version="true"></script>
+}
