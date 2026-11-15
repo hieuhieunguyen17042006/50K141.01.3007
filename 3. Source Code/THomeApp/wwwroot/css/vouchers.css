@@ -34,9 +34,10 @@ body:has(.voucher-page) .app-content>.screen-title{display:none}
 .voucher-result h2 { font-size:34px; }
 @media(max-width:700px){.voucher-result h2{font-size:26px;}}
 
-.voucher-error:not([hidden]){display:flex;align-items:center;gap:12px;color:#f22;background:transparent;border:0;padding:0 0 18px;font-size:21px;font-style:italic}
+.voucher-error:not([hidden]){display:flex;align-items:center;gap:12px;color:#f22;background:transparent;border:0;margin:12px 0 0;padding:0;font-size:21px;font-style:italic;position:static}
 .voucher-error i{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border:2px solid #f22;border-radius:50%;font-style:normal;flex-shrink:0}.voucher-error i::before{content:"i";font-family:Georgia,serif}
 .voucher-override-page .voucher-error i::before{content:"!"}.voucher-form [data-error-for],.voucher-form .voucher-field-error{display:none!important}
-.voucher-form .is-invalid{border-color:#f22!important}.voucher-override-page .col-price{white-space:nowrap;font-variant-numeric:tabular-nums}.voucher-override-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:24px}.voucher-override-heading h1{margin:0;flex:1}.voucher-override-heading .voucher-warning{margin:0;width:auto;max-width:420px;flex-shrink:0}
+.voucher-form .is-invalid{border-color:#f22!important}.voucher-override-page .col-price{white-space:nowrap;font-variant-numeric:tabular-nums}.voucher-override-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:24px}.voucher-override-heading h1{margin:0;flex:1;min-width:0;overflow-wrap:anywhere}.voucher-override-heading .voucher-warning{margin:0;width:auto;max-width:420px;flex-shrink:0}
 .voucher-refund-choice{background:#fff;padding:14px 0}.voucher-side:has(.voucher-refund-choice){background:#d9f5ff;padding:18px 16px;border-radius:14px}.voucher-side:has(.voucher-refund-choice) .voucher-summary{background:#fff}.voucher-form .col-price[readonly]{background:#f0f4f7;cursor:default}
 @media(max-width:1000px){.voucher-override-heading{flex-wrap:wrap}.voucher-override-heading .voucher-warning{max-width:100%;flex-shrink:1}}
+.expense-fields>label:last-of-type,.voucher-override-main .voucher-white>label:last-of-type{margin-bottom:0}

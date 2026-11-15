@@ -186,12 +186,17 @@ public class CuaHangController(THomeDbContext db, IActivityLogger logger) : UiFo
     }
 
     [HttpGet]
-    public async Task<IActionResult> LichSuHoatDong(string? search=null,string? doiTuong=null)
+    public async Task<IActionResult> LichSuHoatDong([FromServices] ActivityLogTime activityTime,string? search=null,string? doiTuong=null,DateOnly? fromDate=null,DateOnly? toDate=null)
     {
         ViewBag.Search=search;ViewBag.DoiTuong=doiTuong;
+        ViewBag.FromDate=fromDate?.ToString("yyyy-MM-dd");ViewBag.ToDate=toDate?.ToString("yyyy-MM-dd");
+        if(fromDate.HasValue&&toDate.HasValue&&fromDate>toDate)ModelState.AddModelError(nameof(toDate),"Khoảng ngày không hợp lệ!");
+        if(!ModelState.IsValid){ViewBag.DateFilterError="Khoảng ngày không hợp lệ!";return View(new List<LichSuHoatDong>());}
         var query=db.LichSuHoatDongs.AsNoTracking().Include(l=>l.NhanVien).AsQueryable();
         if(!string.IsNullOrWhiteSpace(search)) {var term=search.Trim().ToLower();query=query.Where(l=>l.NoiDungThaoTac.ToLower().Contains(term)||(l.LyDo!=null&&l.LyDo.ToLower().Contains(term))||(l.NhanVien!=null&&l.NhanVien.HoTen.ToLower().Contains(term)));}
         if(!string.IsNullOrWhiteSpace(doiTuong)&&doiTuong!="Tất cả") query=query.Where(l=>l.LoaiDoiTuong==doiTuong||(doiTuong=="HoaDon"&&l.LoaiDoiTuong=="YeuCauMoKhoa"));
+        if(fromDate.HasValue){var start=activityTime.VietnamDayStartForStorage(fromDate.Value);query=query.Where(l=>l.ThoiGianThaoTac>=start);}
+        if(toDate.HasValue&&activityTime.AfterVietnamDayForStorage(toDate.Value) is DateTime end)query=query.Where(l=>l.ThoiGianThaoTac<end);
         return View(await query.OrderByDescending(l=>l.ThoiGianThaoTac).Take(200).ToListAsync());
     }
 

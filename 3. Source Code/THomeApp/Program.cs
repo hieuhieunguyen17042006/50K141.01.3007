@@ -63,6 +63,7 @@ builder.Services.AddScoped<THomeApp.Services.HomeDashboard>();
 
 // Add session support
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<THomeApp.Services.ActivityLogTime>();
 builder.Services.AddScoped<THomeApp.Services.IActivityLogger, THomeApp.Services.ActivityLogger>();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddScoped<THomeApp.Services.OrderPreparationStore>();
@@ -79,6 +80,8 @@ builder.Services.AddScoped<THomeApp.Services.LoginAntiforgeryRecoveryFilter>();
 builder.Services.AddControllersWithViews(options => options.Filters.AddService<THomeApp.Services.DocumentWriteFilter>());
 
 var app = builder.Build();
+// Validate the declared log storage convention before accepting requests.
+_ = app.Services.GetRequiredService<THomeApp.Services.ActivityLogTime>();
 
 // Initialize DB and Seed data
 if (app.Environment.IsDevelopment())

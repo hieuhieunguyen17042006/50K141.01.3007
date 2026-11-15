@@ -39,7 +39,6 @@
     <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
         <header class="employee-modal-header"><h2 id="employeeAddTitle">Thêm thông tin nhân viên mới</h2></header>
         <form method="post" asp-action="LuuThongTin" class="employee-profile-form" novalidate>
-            <div class="employee-form-error" role="alert" hidden></div>
             <div class="employee-form-grid">
                 <label for="employeeAddName">Họ và tên nhân viên <em>*</em><input class="form-control" id="employeeAddName" name="HoTen" maxlength="100" required /><span data-error-for="HoTen"></span></label>
                 <label for="employeeAddPhone">Số điện thoại <em>*</em><input class="form-control" id="employeeAddPhone" name="SDT" type="tel" inputmode="numeric" pattern="0[0-9]{9}" maxlength="10" required /><span data-error-for="SDT"></span></label>
@@ -47,6 +46,7 @@
                 <label for="employeeAddRole">Vị trí công việc <em>*</em><select class="form-select" id="employeeAddRole" name="ViTri" required><option value="">Chọn vị trí công việc</option><option value="Nhân viên bán hàng">Nhân viên (quyền bán hàng)</option><option value="Kế toán bán hàng">Nhân viên (quyền kế toán)</option></select><span data-error-for="ViTri"></span></label>
                 <label class="employee-full-row" for="employeeAddAddress">Địa chỉ<input class="form-control" id="employeeAddAddress" name="DiaChi" maxlength="255" /><span data-error-for="DiaChi"></span></label>
             </div>
+            <div class="employee-form-error" role="alert" hidden></div>
             <footer class="employee-modal-actions"><button type="button" class="employee-cancel" data-bs-dismiss="modal">Hủy</button><button type="submit" class="employee-button">Lưu</button></footer>
         </form>
     </div></div>
@@ -57,7 +57,6 @@
         <header class="employee-modal-header"><h2 id="employeeEditTitle">Sửa thông tin nhân viên</h2></header>
         <form method="post" asp-action="LuuThongTin" class="employee-profile-form" novalidate>
             <input type="hidden" name="id" />
-            <div class="employee-form-error" role="alert" hidden></div>
             <div class="employee-form-grid">
                 <label for="employeeEditCode">Mã nhân viên<input class="form-control" id="employeeEditCode" readonly /></label>
                 <label for="employeeEditName">Họ và tên nhân viên <em>*</em><input class="form-control" id="employeeEditName" name="HoTen" maxlength="100" required /><span data-error-for="HoTen"></span></label>
@@ -66,6 +65,7 @@
                 <label for="employeeEditPhone">Số điện thoại <em>*</em><input class="form-control" id="employeeEditPhone" name="SDT" type="tel" inputmode="numeric" pattern="0[0-9]{9}" maxlength="10" required /><span data-error-for="SDT"></span></label>
                 <label for="employeeEditAddress">Địa chỉ<input class="form-control" id="employeeEditAddress" name="DiaChi" maxlength="255" /><span data-error-for="DiaChi"></span></label>
             </div>
+            <div class="employee-form-error" role="alert" hidden></div>
             <footer class="employee-modal-actions"><button type="button" class="employee-cancel" data-bs-dismiss="modal">Hủy</button><button type="submit" class="employee-button">Lưu</button></footer>
         </form>
     </div></div>

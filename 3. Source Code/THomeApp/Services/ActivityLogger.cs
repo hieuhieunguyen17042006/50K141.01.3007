@@ -16,11 +16,13 @@ namespace THomeApp.Services
     {
         private readonly THomeDbContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ActivityLogTime _time;
 
-        public ActivityLogger(THomeDbContext context, IHttpContextAccessor httpContextAccessor)
+        public ActivityLogger(THomeDbContext context, IHttpContextAccessor httpContextAccessor, ActivityLogTime time)
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
+            _time = time;
         }
 
         public async Task LogAsync(string loaiDoiTuong, string noiDung, string? lyDo = null, string? maNV = null, string? duLieuThayDoiJson = null)
@@ -32,7 +34,7 @@ namespace THomeApp.Services
 
                 var log = new LichSuHoatDong
                 {
-                    ThoiGianThaoTac = DateTime.Now,
+                    ThoiGianThaoTac = _time.StorageNow,
                     LoaiDoiTuong = loaiDoiTuong,
                     NoiDungThaoTac = noiDung,
                     LyDo = lyDo,

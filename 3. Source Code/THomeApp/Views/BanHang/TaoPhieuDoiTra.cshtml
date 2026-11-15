@@ -7,7 +7,6 @@
     <section class="voucher-shell"><h2>Tạo phiếu đổi trả</h2>
     <form method="post" asp-action="TaoPhieuDoiTra" class="voucher-form" id="returnForm" novalidate>
     <input type="hidden" name="maHD" value="@Model.MaHD" /><input type="hidden" name="loaiPhieu" value="TraHang" />
-    <div class="voucher-error" role="alert" hidden><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><span>Không hợp lệ!</span></div>
     <div class="voucher-grid"><div class="voucher-main">
         <div class="voucher-return-top"><section><h3>Hóa đơn: @(Model.MaHoaDon??Model.MaHD)</h3><p>Tên: @Model.KhachHang?.HoTen<br />SĐT: @Model.KhachHang?.SDT</p></section>
             <div class="voucher-tabs" role="tablist" aria-label="Loại phiếu"><button type="button" role="tab" aria-selected="true" data-return-mode="TraHang">Trả hàng</button><button type="button" role="tab" aria-selected="false" data-return-mode="DoiHang">Đổi hàng</button></div>
@@ -27,6 +26,7 @@
             <button type="button" class="voucher-add-row" id="addExchangeRow">+ Thêm sản phẩm đổi mới</button>
         </section>
         <div class="voucher-return-bottom"><div><span>Chênh lệch</span><strong data-return-difference>0 đ</strong></div><div><span>Phải hoàn khách</span><strong data-return-refund>0 đ</strong></div><div><span>Khách phải trả</span><strong data-return-extra>0 đ</strong></div><div class="voucher-total"><span>Tổng tiền</span><strong id="returnNewTotal">@Money(Model.TongThanhToan)</strong></div></div>
+        <partial name="_VoucherError" />
     </div><aside class="voucher-side"><section class="voucher-summary"><h3>Phương án xử lý tiền hoàn</h3>
         <fieldset class="voucher-refund-choice"><legend class="visually-hidden">Phương án xử lý</legend><label><input type="radio" name="hinhThucXuLy" value="HoanTienTrucTiep" checked="@(Model.ConNo==0)" /> Hoàn tiền trực tiếp</label><label><input type="radio" name="hinhThucXuLy" value="CanTruCongNo" checked="@(Model.ConNo>0)" /> Cấn trừ công nợ</label><span data-error-for="hinhThucXuLy"></span></fieldset>
         <div><span>Giá trị hàng <span data-return-word>trả</span></span><strong id="displayReturnVal">0 đ</strong></div><div data-exchange-only hidden><span>Giá trị hàng mới</span><strong id="displayExchangeVal">0 đ</strong></div>

@@ -10,7 +10,7 @@ namespace THomeApp.Models
         [Key]
         public int MaLichSu { get; set; }
 
-        public DateTime ThoiGianThaoTac { get; set; } = DateTime.Now;
+        public DateTime ThoiGianThaoTac { get; set; } = THomeApp.Helpers.VietnamTime.Now.DateTime;
 
         [Required]
         [MaxLength(100)]

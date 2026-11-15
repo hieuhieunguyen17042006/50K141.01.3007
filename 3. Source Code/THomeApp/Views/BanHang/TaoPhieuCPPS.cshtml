@@ -8,10 +8,10 @@
     <p class="voucher-reference">Hóa đơn: @(Model.MaHoaDon??Model.MaHD) · @Model.KhachHang?.HoTen</p>
     <form method="post" asp-action="TaoPhieuCPPS" class="voucher-form" id="cppsForm" novalidate>
         <input type="hidden" name="maHD" value="@Model.MaHD" />
-        <div class="voucher-error" role="alert" hidden><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><span>Không hợp lệ!</span></div>
         <div class="voucher-grid expense-grid"><div class="voucher-main expense-fields">
             <label>Chi phí phát sinh (đ) <em>*</em><input id="cppsAmount" name="soTien" type="number" min="1" step="0.01" class="form-control" placeholder="Nhập số tiền" required /><span data-error-for="soTien"></span></label>
             <label>Lý do phát sinh <em>*</em><textarea name="lyDo" class="form-control" maxlength="500" rows="5" required placeholder="Nhập lý do phát sinh"></textarea><span data-error-for="lyDo"></span></label>
+            <partial name="_VoucherError" />
         </div><aside class="voucher-side expense-side"><section class="voucher-summary"><h3>Dự kiến sau khi lưu</h3>
             <div><span>Tổng đơn hiện tại</span><strong>@Money(Model.TongThanhToan)</strong></div>
             <div><span>Chi phí bổ sung</span><strong id="cppsAddition">0 đ</strong></div>

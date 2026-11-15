@@ -6,7 +6,7 @@
 <div class="voucher-page voucher-override-page" data-voucher-kind="override">
     <header class="voucher-override-heading"><h1>Phiếu ghi đè hóa đơn @(Model.MaHoaDon??Model.MaHD)</h1>@if(Model.SoLanGhiDe>=2){<div id="overrideWarning" class="voucher-warning @(Model.SoLanGhiDe>=5?"danger":"warning")" role="alert"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Cảnh báo: Hóa đơn đã ghi đè @Model.SoLanGhiDe lần.</div>}</header>
     <form method="post" asp-action="LuuPhieuGhiDe" id="overrideForm" class="voucher-form" novalidate>
-    <input type="hidden" name="maHD" value="@Model.MaHD" /><input type="hidden" name="expectedVersion" value="@Model.SoLanGhiDe" /><div class="voucher-error" role="alert" hidden><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><span>Không hợp lệ!</span></div>
+    <input type="hidden" name="maHD" value="@Model.MaHD" /><input type="hidden" name="expectedVersion" value="@Model.SoLanGhiDe" />
     <div class="voucher-grid"><div class="voucher-main voucher-override-main">
         <section class="voucher-white"><h3>Thông tin khách hàng</h3><label>Tìm khách hàng theo tên / số điện thoại<input class="form-control" id="overrideCustomer" readonly value="@Model.KhachHang?.HoTen · @Model.KhachHang?.SDT" /></label></section>
         <section class="voucher-white"><span data-error-for="itemsJson"></span>
@@ -14,6 +14,7 @@
             <label>Địa chỉ giao hàng<input class="form-control" id="overrideAddress" readonly value="@Model.DiaChiGiao" /></label>
             <label class="override-note">Ghi chú<input name="ghiChu" class="form-control" value="@Model.GhiChu" maxlength="500" /><span data-error-for="ghiChu"></span></label>
             <label>Lý do ghi đè <em>*</em><textarea id="lyDoGhiDe" name="lyDoGhiDe" class="form-control" maxlength="500" rows="4" required></textarea><span data-error-for="lyDoGhiDe"></span></label>
+            <partial name="_VoucherError" />
         </section>
     </div><aside class="voucher-side"><section class="voucher-summary"><h3>Tổng thanh toán</h3>
         <div><span>Tiền hàng</span><strong id="displayNewSubtotal">@Money(Model.TongTienHang)</strong></div><div><span>Chiết khấu @((discountRate*100).ToString("0.##",CultureInfo.GetCultureInfo("vi-VN")))%</span><strong id="overrideDiscount">−@Money(Model.TienChietKhau)</strong></div>

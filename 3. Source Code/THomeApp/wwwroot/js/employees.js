@@ -26,7 +26,8 @@
     function showError(form, message, errors = {}) {
         const summary = form.querySelector('.employee-form-error');
         const icon=document.createElement('i');icon.className='fa-solid fa-circle-info';icon.setAttribute('aria-hidden','true');
-        const text=document.createElement('span');text.textContent=Object.keys(errors).length?'Không hợp lệ!':message;
+        const validationError=Object.keys(errors).length||message==='Không hợp lệ!';
+        const text=document.createElement('span');text.textContent=validationError?(form.classList.contains('employee-profile-form')?'Thông tin không hợp lệ!':'Không hợp lệ!'):message;
         summary.replaceChildren(icon,text);summary.hidden=false;
         for (const [name, messages] of Object.entries(errors)) {
             const field = form.querySelector(`[name="${CSS.escape(name)}"]`);

@@ -521,7 +521,7 @@ namespace THomeApp.Data
                 // 6. Ghi nhật ký hoạt động khởi tạo
                 context.LichSuHoatDongs.Add(new LichSuHoatDong
                 {
-                    ThoiGianThaoTac = DateTime.Now.AddDays(-6),
+                    ThoiGianThaoTac = new THomeApp.Services.ActivityLogTime(configuration).StorageNow.AddDays(-6),
                     LoaiDoiTuong = "HeThong",
                     NoiDungThaoTac = "Khởi tạo hệ thống cơ sở dữ liệu T-HOME và các danh mục ban đầu",
                     LyDo = "Cài đặt ứng dụng lần đầu",
