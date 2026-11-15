@@ -1,0 +1,52 @@
+@using System.Globalization
+@inject THomeApp.Services.PaymentQr PaymentQr
+@model THomeApp.Models.HoaDon
+@{
+    string Money(decimal amount) => amount.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) + " đ";
+    var ngayLap = Model.NgayPhatHanh ?? Model.NgayTao;
+    var tyLeCK = Model.TongTienHang > 0 ? Model.TienChietKhau * 100 / Model.TongTienHang : 0;
+}
+<article id="invoiceDocument" class="invoice-document" data-print-root="invoice" data-invoice-number="@(Model.MaHoaDon ?? Model.MaHD)">
+    <header class="invoice-store">
+        <h3>CỬA HÀNG NỘI THẤT T-HOME</h3>
+        <p>Địa chỉ: 36-38 Hói Kiểng 15, Phường Ngũ Hành Sơn<br />SĐT: 0123 456 789</p>
+    </header>
+    <h2 class="invoice-document-title">HÓA ĐƠN BÁN HÀNG</h2>
+    @if (Model.LoaiChungTu == "HoaDon" || !string.IsNullOrEmpty(Model.MaHoaDon)) { <p class="fw-bold invoice-number">Mã hóa đơn: @(Model.MaHoaDon ?? Model.MaHD)</p> }
+    <div class="invoice-document-info">
+        <div><strong>Đơn gốc: @Model.MaHD</strong></div>
+        <div class="text-md-end">Ngày lập: @ngayLap.ToString("dd/MM/yyyy")</div>
+        <div><strong>Khách hàng: @Model.KhachHang?.HoTen</strong></div>
+        <div class="text-md-end">Điện thoại: @Model.KhachHang?.SDT</div>
+        <div class="invoice-payment-method"><strong>Phương thức:</strong> <span>@Model.PhuongThucThanhToan</span></div>
+    </div>
+    <div class="table-responsive">
+        <table class="table invoice-document-table">
+            <thead><tr><th>Mặt hàng</th><th>ĐVT</th><th class="text-center">SL</th><th class="text-end">Đơn giá</th><th class="text-end">Thành tiền</th></tr></thead>
+            <tbody>
+                @foreach (var line in Model.ChiTietHoaDons.OrderBy(c => c.MaSP))
+                {
+                    <tr data-invoice-product="@line.MaSP"><td>@(line.SanPham?.TenSP ?? line.MaSP)@if(line.SoLuongDaTra>0){<small class="d-block text-muted">Đã trả: @line.SoLuongDaTra · Còn được trả: @line.SoLuongConLai</small>}</td><td>@line.SanPham?.DonViTinh</td><td class="text-center">@line.SoLuong</td><td class="text-end">@line.DonGiaBan.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))</td><td class="text-end">@Money(line.ThanhTien)</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @{var exchanges=Model.Phieus.Where(p=>p.TrangThai=="Hiệu lực").SelectMany(p=>p.ChiTietPhieus).Where(c=>c.LoaiDong=="DoiMoi").ToList();}
+    @if(exchanges.Count>0){<section class="invoice-exchange-tracking"><h4 style="font-size:16px">Hàng nhận đổi theo phiếu</h4><table class="table small"><thead><tr><th>Mặt hàng / phiếu</th><th>Nhận đổi</th><th>Đã trả</th><th>Còn được trả</th></tr></thead><tbody>
+        @foreach(var line in exchanges){var returned=Model.Phieus.Where(p=>p.TrangThai=="Hiệu lực").SelectMany(p=>p.ChiTietPhieus).Where(c=>c.SourceVoucherLineId==line.Id).Sum(c=>c.SoLuong);<tr data-exchanged-line="@line.Id"><td>@(line.SanPham?.TenSP??line.MaSP)<small class="d-block">@line.MaPhieu</small></td><td>@line.SoLuong</td><td>@returned</td><td>@Math.Max(line.SoLuong-returned,0)</td></tr>}
+    </tbody></table></section>}
+    <div class="invoice-document-footer">
+        <div class="invoice-document-qr">
+            <img src="@Url.Action("Document", "Qr", new { id = Model.MaHD })" alt="@PaymentQr.LabelFor(Model.TongThanhToan)" width="190" height="190" />
+            <small>@PaymentQr.LabelFor(Model.TongThanhToan)</small>
+        </div>
+        <div class="invoice-document-totals">
+            <div><span>Tiền hàng</span><strong>@Money(Model.TongTienHang)</strong></div>
+            <div><span>Chiết khấu @(tyLeCK > 0 ? tyLeCK.ToString("0.##", CultureInfo.GetCultureInfo("vi-VN")) + "%" : "")</span><strong>−@Money(Model.TienChietKhau)</strong></div>
+            <div><span>Phí vận chuyển</span><strong>@Money(Model.ChiPhiVanChuyen)</strong></div>
+            <div><span>VAT</span><strong>@(Model.TienThue == 0 ? "−" : Money(Model.TienThue))</strong></div>
+            <partial name="_InvoiceAdjustments" model="Model" />
+            <div class="invoice-document-total"><strong>TỔNG THANH TOÁN</strong><strong id="invoiceTotal">@Money(Model.TongThanhToan)</strong></div>
+        </div>
+    </div>
+</article>

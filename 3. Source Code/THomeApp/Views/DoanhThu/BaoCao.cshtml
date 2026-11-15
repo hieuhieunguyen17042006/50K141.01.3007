@@ -1,0 +1,59 @@
+@model RevenueReport
+@{ ViewData["Title"] = "Báo cáo doanh thu"; }
+@section Styles { <link rel="stylesheet" href="~/css/revenue.css" asp-append-version="true" /> }
+<div class="revenue-page" data-report-empty="@((!Model.HasData).ToString().ToLowerInvariant())">
+    <nav class="revenue-breadcrumb" aria-label="Đường dẫn"><a asp-action="Index">DOANH THU</a> / Tạo báo cáo doanh thu</nav>
+    <h1>Báo cáo doanh thu</h1>
+    <section class="revenue-report-panel">
+        <div class="revenue-period-header">
+            <h2>Báo cáo doanh thu @Model.Period</h2>
+            <details class="revenue-period-picker">
+                <summary><i class="fa-regular fa-calendar" aria-hidden="true"></i> Chọn kỳ</summary>
+                <form method="get" asp-action="BaoCao">
+                    <label>Từ ngày<input class="form-control" type="date" name="fromDate" value="@Model.From.ToString("yyyy-MM-dd")" required /></label>
+                    <label>Đến ngày<input class="form-control" type="date" name="toDate" value="@Model.To.ToString("yyyy-MM-dd")" required /></label>
+                    <button class="revenue-button" type="submit">Xem báo cáo</button>
+                </form>
+            </details>
+        </div>
+        <div class="revenue-metrics">
+            @foreach (var item in Model.Summary.Take(4)) {
+                <div class="revenue-metric"><span>@item.Label</span><strong data-metric="@item.Label" data-value="@item.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)">@RevenueReport.Money(item.Amount)</strong></div>
+            }
+        </div>
+        <section class="revenue-classification">
+            <h2>Phân loại</h2>
+            @foreach (var item in Model.Summary.Skip(4).Take(3)) {
+                var icon = item.Label == "Tổng tiền mặt" ? "fa-money-bill" : item.Label == "Tổng tiền chuyển khoản" ? "fa-building-columns" : "fa-receipt";
+                <div class="revenue-classification-row"><span><i class="fa-solid @icon" aria-hidden="true"></i>@item.Label</span><strong data-metric="@item.Label" data-value="@item.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)">@RevenueReport.Money(item.Amount)</strong></div>
+            }
+            <div class="revenue-classification-row revenue-classification-total"><span>Tổng doanh thu sau chiết khấu</span><strong>@RevenueReport.Money(Model.AfterDiscount)</strong></div>
+        </section>
+        <div class="revenue-export-actions">
+            <a class="revenue-button" data-export="PDF" asp-action="ExportPdf" asp-route-fromDate="@Model.From.ToString("yyyy-MM-dd")" asp-route-toDate="@Model.To.ToString("yyyy-MM-dd")"><i class="fa-regular fa-file-pdf" aria-hidden="true"></i> PDF</a>
+            <a class="revenue-button" data-export="Excel" asp-action="ExportExcel" asp-route-fromDate="@Model.From.ToString("yyyy-MM-dd")" asp-route-toDate="@Model.To.ToString("yyyy-MM-dd")"><i class="fa-regular fa-file-excel" aria-hidden="true"></i> Excel</a>
+        </div>
+    </section>
+    <details class="revenue-report-details">
+        <summary>Cơ sở tính và hóa đơn trong kỳ (@Model.Invoices.Count)</summary>
+        <p>@RevenueReport.Basis</p>
+        <p>VAT của hóa đơn trong kỳ: @RevenueReport.Money(Model.Vat).</p>
+        @if (Model.LegacyWithoutReceipts > 0) {
+            <p class="alert alert-warning">@Model.LegacyWithoutReceipts hóa đơn dữ liệu cũ chưa có sổ thu: không tự tính thành tiền thực thu trong kỳ; công nợ dùng số dư đã lưu.</p>
+        }
+        <div class="table-responsive"><table class="table"><thead><tr><th>Mã hóa đơn / Đơn gốc</th><th>Ngày phát hành</th><th>Khách hàng</th><th>Doanh thu trước CK</th><th>Chiết khấu</th><th>Trạng thái</th></tr></thead><tbody>
+        @foreach (var h in Model.Invoices) {
+            <tr><td><a asp-controller="BanHang" asp-action="ChiTietHoaDon" asp-route-id="@h.MaHD">@(h.MaHoaDon ?? h.MaHD)<br />@h.MaHD</a></td><td>@((h.NgayPhatHanh ?? h.NgayTao).ToString("dd/MM/yyyy"))</td><td>@h.KhachHang?.HoTen</td><td>@RevenueReport.Money(h.TongTienHang + h.ChiPhiVanChuyen)</td><td>@RevenueReport.Money(h.TienChietKhau)</td><td>@h.TrangThaiThanhToan</td></tr>
+        }
+        @if (Model.Invoices.Count == 0) { <tr><td colspan="6">Không có hóa đơn phát hành trong kỳ.</td></tr> }
+        </tbody></table></div>
+    </details>
+    <a class="revenue-shift-link" asp-action="DoiSoatCa">Đối soát tiền mặt ca</a>
+</div>
+<div class="modal fade revenue-result-modal" id="revenueResultModal" tabindex="-1" aria-labelledby="revenueResultTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+        <div class="modal-body"><i id="revenueResultIcon" class="fa-solid fa-circle-check" aria-hidden="true"></i><h2 id="revenueResultTitle"></h2></div>
+    </div></div>
+</div>
+@section Scripts { <script src="~/js/revenue.js" asp-append-version="true"></script> }

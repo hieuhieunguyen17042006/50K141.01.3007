@@ -1,0 +1,22 @@
+@using System.Globalization
+@model HoaDon
+@{
+    string Money(decimal value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) + " đ";
+    var discount = Model.TongTienHang > 0 ? Model.TienChietKhau * 100 / Model.TongTienHang : 0;
+    var adjustment = Model.TongThanhToan - (Model.TongTienHang - Model.TienChietKhau + Model.ChiPhiVanChuyen + Model.TienThue);
+}
+<section class="sales-payment-summary">
+    <h2>Tổng thanh toán</h2>
+    <div><span>Tiền hàng</span><strong>@Money(Model.TongTienHang)</strong></div>
+    <div><span>Chiết khấu @(discount == 0 ? "" : discount.ToString("0.##", CultureInfo.GetCultureInfo("vi-VN")) + "%")</span><strong>−@Money(Model.TienChietKhau)</strong></div>
+    <div><span>Phí vận chuyển</span><strong>@Money(Model.ChiPhiVanChuyen)</strong></div>
+    <div><span>Thuế VAT</span><strong>@(Model.TienThue == 0 ? "−" : Money(Model.TienThue))</strong></div>
+    <partial name="_InvoiceAdjustments" model="Model" />
+    <div class="sales-payment-method"><span>Phương thức:</span><strong>@Model.PhuongThucThanhToan</strong></div>
+    <div><span>Đã thu</span><strong data-summary-collected="@Model.DaThu.ToString(CultureInfo.InvariantCulture)">@Money(Model.DaThu)</strong></div>
+    @if (Model.DaHoanKhach > 0) { <div><span>Đã hoàn khách</span><strong>@Money(Model.DaHoanKhach)</strong></div><div><span>Thu ròng</span><strong>@Money(Model.ThuRong)</strong></div> }
+    <div><span>Còn nợ</span><strong data-summary-debt="@Model.ConNo.ToString(CultureInfo.InvariantCulture)">@Money(Model.ConNo)</strong></div>
+    @if (Model.PhaiHoan > 0) { <div class="text-danger"><span>Phải hoàn khách</span><strong>@Money(Model.PhaiHoan)</strong></div> }
+    <div class="sales-payment-total"><strong>TỔNG CỘNG</strong><strong>@Money(Model.TongThanhToan)</strong></div>
+    @if (Model.HanThanhToan.HasValue) { <small>Hạn thanh toán: @Model.HanThanhToan.Value.ToString("dd/MM/yyyy")</small> }
+</section>

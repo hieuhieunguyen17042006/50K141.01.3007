@@ -1,0 +1,24 @@
+@model THomeApp.Models.HoaDon
+@{ ViewData["Title"] = "Tạo hóa đơn"; }
+<link rel="stylesheet" href="~/css/invoices.css" asp-append-version="true" />
+<div class="invoice-creation">
+    <div class="card-thome invoice-preview-panel">
+        <partial name="_HoaDonBanHang" model="Model" />
+    </div>
+    <aside class="invoice-export-panel">
+        <form id="createInvoiceForm" method="post" asp-action="PhatHanhHoaDon">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="maHD" value="@Model.MaHD" />
+            <div class="invoice-export-options">
+                <h3>Cách xuất sau khi tạo</h3>
+                <label class="form-check"><input class="form-check-input" type="checkbox" name="inHoaDonGiay" value="true" checked /><span class="form-check-label">In hóa đơn giấy</span></label>
+                <label class="form-check"><input class="form-check-input" type="checkbox" name="guiZalo" value="true" /><span class="form-check-label">Gửi qua Zalo</span></label>
+                <label class="form-check"><input class="form-check-input" type="checkbox" name="guiEmail" value="true" /><span class="form-check-label">Gửi qua Email</span></label>
+            </div>
+            <div class="invoice-export-actions d-grid gap-3">
+                <button id="btnConfirmInvoice" type="submit" class="btn btn-thome-primary fw-bold py-2">Xác nhận</button>
+                <a class="btn invoice-cancel fw-bold py-2" href="/BanHang/Index?tab=dontamtinh">Hủy</a>
+            </div>
+        </form>
+    </aside>
+</div>

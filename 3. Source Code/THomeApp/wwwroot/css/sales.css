@@ -1,0 +1,77 @@
+.sales-panel { padding:14px 18px 28px; min-height:780px; }
+.sales-tabs-toolbar { display:flex; justify-content:space-between; align-items:center; gap:20px; margin-bottom:17px; }
+.sales-tabs-toolbar .btn { min-width:128px; border:1px solid #b9d1e2; }
+.sales-tabs-toolbar .btn-light { background:#fff; color:#083e70; }
+.sales-list-metrics > div > div { min-height:87px; padding:12px!important; }
+.sales-list-metrics h3 { margin:4px 0 0; font-size:30px; }
+.sales-list-metrics small { font-size:15px; }
+.sales-panel .sales-table { color:#083e70; }
+.sales-panel .sales-table thead th { background:#e8f5fc; border:0; padding:13px 14px; }
+.sales-panel .sales-table td { padding:22px 14px; border-color:#dcecf3; }
+.sales-panel .sales-table .badge { min-width:142px; padding:7px 10px; white-space:nowrap; }
+body:has(.sales-detail-page) .app-content > .screen-title { display:none; }
+.sales-detail-toolbar { display:flex; justify-content:space-between; align-items:center; gap:15px; margin:4px 0 18px; }
+.sales-detail-toolbar h1 { font-size:30px; font-weight:750; margin:0; overflow-wrap:anywhere; }
+.sales-detail-toolbar a { flex-shrink:0; font-weight:650; }
+.sales-detail-grid { display:grid; grid-template-columns:minmax(0,2.05fr) minmax(310px,1fr); gap:15px; align-items:start; }
+.sales-detail-left,.sales-detail-aside { background:#d9f5ff; border-radius:16px; padding:16px 14px 20px; min-width:0; box-shadow:0 3px 0 #c1e5f2; }
+.sales-detail-left { min-height:780px; }
+.sales-draft-paper { display:flex; flex-direction:column; gap:18px; }
+.sales-customer-card,.sales-purchased-card,.sales-payment-summary,.sales-voucher-actions { background:#fff; border-radius:12px; padding:16px 14px; }
+.sales-detail-page h2 { font-size:18px; font-weight:750; margin:0 0 16px; }
+.sales-customer-card { min-height:175px; }
+.sales-customer-card h3 { font-size:25px; font-weight:750; margin:15px 0 8px; }
+.sales-customer-card p { margin:5px 0; }
+.sales-customer-address,.sales-detail-note { font-size:14px; }
+.sales-purchased-card { flex:1; }
+.sales-purchased-card table { color:#083e70; margin-top:20px; }
+.sales-purchased-card th { background:#e8f5fc; border:0; font-size:15px; }
+.sales-purchased-card td { padding:22px 12px; font-weight:650; border-color:#dcecf3; }
+.sales-purchased-card th:not(:first-child),.sales-purchased-card td:not(:first-child) { text-align:center; white-space:nowrap; }
+.sales-detail-aside .sales-payment-summary h2 { margin-bottom:15px; }
+.sales-payment-summary > div { display:flex; justify-content:space-between; gap:12px; margin:13px 0; }
+.sales-payment-summary strong { text-align:right; white-space:nowrap; }
+.sales-payment-method { padding-top:5px; }
+.sales-payment-total { border-top:1px solid #dcecf3; padding-top:18px; margin-top:20px!important; align-items:center; }
+.sales-payment-total strong:last-child { font-size:24px; }
+.sales-payment-summary small { color:#64748b; }
+.sales-detail-aside.invoice-summary-draft { min-height:780px; display:flex; flex-direction:column; }
+.sales-detail-aside .invoice-create-actions { margin-top:auto; display:grid; gap:12px; padding:28px 12px 18px; }
+.invoice-create-actions .btn { font-weight:700; }
+.invoice-create-actions .btn-thome-primary:disabled { background:#083e70; border-color:#083e70; color:#fff; opacity:.55; }
+.invoice-create-actions small { color:#607e98; font-size:12px; }
+.sales-voucher-actions { display:grid; gap:9px; margin-top:28px; }
+.sales-voucher-actions h2 { margin-bottom:0; }
+.sales-voucher-actions .btn { font-weight:650; padding:7px 10px; }
+.sales-invoice-print-actions,.sales-payment-actions { display:grid; gap:10px; margin-top:18px; }
+.sales-payment-actions:empty { display:none; }
+.sales-invoice-paper .invoice-document { min-height:745px; padding:8px 12px 24px; }
+.sales-invoice-paper .invoice-document-title { margin:20px 0; font-size:29px; }
+.sales-invoice-paper .invoice-document-info { margin-bottom:28px; }
+.sales-invoice-paper .invoice-document-qr img { width:165px; height:165px; }
+.sales-invoice-paper .invoice-document-footer { grid-template-columns:170px minmax(0,1fr); gap:18px; }
+.sales-invoice-paper .invoice-document-total strong:last-child { font-size:22px; }
+.sales-detail-history { margin-top:24px; }
+.sales-detail-history > summary { color:#083e70; cursor:pointer; font-weight:650; padding:15px 18px; background:#fff; border-radius:8px; margin-bottom:15px; }
+.sales-override-notice { font-weight:650; }
+.order-qr-panel { background:#d9f5ff; padding:20px 16px 30px; border-radius:15px; min-height:700px; }
+.order-qr-content { background:#fff; border-radius:12px; min-height:660px; padding-bottom:25px; }
+.order-qr-page .invoice-cancel { background:#fff; color:#083e70; border:1px solid #b9d1e2; }
+.qr-sheet { padding:30px 45px; background:#fff; border-radius:12px; }
+.qr-sheet h1 { font-size:30px; font-weight:750; margin:0 0 35px; }
+.qr-document-grid { display:grid; grid-template-columns:minmax(240px,350px) minmax(0,1fr); align-items:start; gap:35px; }
+.qr-image-area { background:#fff; padding:12px; }
+.qr-image-area img { width:100%; height:auto; max-width:320px; object-fit:contain; image-rendering:pixelated; }
+.qr-order-information { padding-top:15px; overflow-wrap:anywhere; }
+.qr-order-information h2 { font-size:23px; font-weight:750; }
+.qr-order-information p { font-size:14px; color:#607e98; }
+.qr-order-information dt { margin-top:15px; font-size:14px; font-weight:400; }
+.qr-order-information dd { font-weight:650; margin:3px 0; }
+.qr-order-information .qr-order-amount { font-size:27px; }
+.qr-kind-description { margin-top:20px; }
+.qr-receipt-note { margin:20px 10px; font-size:14px; color:#526c82; }
+.qr-screen-actions { display:flex; justify-content:space-between; align-items:flex-start; gap:20px; padding:10px 25px 0; }
+.qr-screen-actions > div { display:grid; gap:10px; min-width:190px; }
+.qr-screen-actions .btn { min-height:46px; font-weight:650; }
+@media(max-width:1100px) { .sales-detail-grid { grid-template-columns:minmax(0,1.7fr) minmax(280px,1fr); } .sales-payment-summary { padding:14px 10px; font-size:14px; } .sales-payment-total strong:last-child { font-size:20px; } .sales-invoice-paper .invoice-document-footer { grid-template-columns:140px minmax(0,1fr); gap:12px; } .qr-sheet { padding:25px; } }
+@media(max-width:900px) { .sales-detail-grid { grid-template-columns:1fr; } .sales-detail-left,.sales-detail-aside.invoice-summary-draft { min-height:0; } .sales-purchased-card { min-height:350px; } .sales-detail-toolbar { align-items:flex-start; } .sales-detail-toolbar h1 { font-size:25px; } .qr-document-grid { grid-template-columns:1fr; } .qr-image-area { max-width:350px; } .sales-tabs-toolbar { flex-wrap:wrap; } }

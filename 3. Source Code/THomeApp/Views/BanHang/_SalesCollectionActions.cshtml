@@ -1,0 +1,8 @@
+@model HoaDon
+<div class="sales-payment-actions">
+    @if (Model.ConNo > 0 && Model.TrangThaiThanhToan != "Đã hủy") {
+        <button type="button" class="btn invoice-cancel" data-bs-toggle="modal" data-bs-target="#collectMoneyModal">Thu tiền / Hiện mã QR</button>
+        <a class="btn invoice-cancel" asp-action="MaQR" asp-route-id="@Model.MaHD">Xem / In mã QR</a>
+    }
+    @if (Model.PhaiHoan > 0 && Model.TrangThaiThanhToan != "Đã hủy") { <button type="button" class="btn invoice-cancel" data-bs-toggle="modal" data-bs-target="#refundModal">Xác nhận đã hoàn tiền</button> }
+</div>

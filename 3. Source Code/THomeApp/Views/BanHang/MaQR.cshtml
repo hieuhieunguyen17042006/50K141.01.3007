@@ -1,0 +1,34 @@
+@using System.Globalization
+@inject THomeApp.Services.PaymentQr PaymentQr
+@model OrderQrView
+@{ ViewData["Title"] = "Tạo hóa đơn tạm tính"; var payment = PaymentQr.CanPay(Model.Amount); }
+<link rel="stylesheet" href="~/css/sales.css" asp-append-version="true" />
+<div class="order-qr-page">
+    <section class="order-qr-panel">
+        <div class="order-qr-content">
+        <article class="qr-sheet" id="qrPrintDocument" data-print-root="qr" data-qr-kind="@(payment ? "payment" : "internal")" data-order-id="@Model.Order.MaHD">
+            <h1>@PaymentQr.LabelFor(Model.Amount)</h1>
+            <div class="qr-document-grid">
+                <div class="qr-image-area"><img id="orderQrImage" src="@Url.Action("Invoice", "Qr", new { id = Model.Order.MaHD, amount = Model.Amount.ToString(CultureInfo.InvariantCulture) })" width="320" height="320" alt="@PaymentQr.LabelFor(Model.Amount)" /></div>
+                <div class="qr-order-information">
+                    <h2>CỬA HÀNG NỘI THẤT T-HOME</h2>
+                    <p>36-38 Hói Kiểng 15, Phường Ngũ Hành Sơn<br />Điện thoại: 0123 456 789</p>
+                    <dl><dt>Mã đơn</dt><dd>@Model.Order.MaHD</dd><dt>Số tiền cần thu</dt><dd class="qr-order-amount">@Model.Amount.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) đ</dd>
+                    @if (payment) {
+                        <dt>Ngân hàng (BIN)</dt><dd>@PaymentQr.BankBin</dd><dt>Số tài khoản</dt><dd>@PaymentQr.AccountNumber</dd>
+                        @if (!string.IsNullOrEmpty(PaymentQr.AccountName)) { <dt>Chủ tài khoản</dt><dd>@PaymentQr.AccountName</dd> }
+                        <dt>Nội dung chuyển khoản</dt><dd>@PaymentQr.TransferContent(Model.Order.MaHD)</dd>
+                    }
+                    </dl>
+                    @if (!payment) { <p class="qr-kind-description">QR tra cứu nội bộ dùng để mở thông tin đơn trong hệ thống T-HOME. Chưa có mã QR chuyển khoản cho đơn này.</p> }
+                </div>
+            </div>
+        </article>
+        <p class="qr-receipt-note">Chưa ghi nhận thu tiền. Xác nhận đã thu tại chi tiết đơn sau khi khách thanh toán.</p>
+        <div class="qr-screen-actions">
+            <button type="button" class="btn invoice-cancel" id="printQrButton" data-print-document="qrPrintDocument">In mã QR</button>
+            <div><a class="btn btn-thome-primary" id="saveQrButton" asp-action="ChiTietHoaDon" asp-route-id="@Model.Order.MaHD">Lưu</a><a class="btn invoice-cancel" id="cancelQrButton" href="/BanHang/Index?tab=dontamtinh">Hủy</a></div>
+        </div>
+        </div>
+    </section>
+</div>

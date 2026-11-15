@@ -1,0 +1,177 @@
+@model THomeApp.Models.NhanVien
+@{
+    ViewData["Title"] = "Thêm nhân viên";
+    var errorMK = ViewBag.ErrorMatKhau as string;
+    var errorTenDN = ViewBag.ErrorTenDN as string;
+    var selChuCuaHang = (Model?.ViTri == "Chủ cửa hàng") ? " selected" : "";
+    var selKeToan = (Model?.ViTri == "Kế toán bán hàng") ? " selected" : "";
+    var selNhanVien = (Model?.ViTri == "Nhân viên bán hàng") ? " selected" : "";
+    var clsTenDN = !string.IsNullOrEmpty(errorTenDN) ? " is-invalid" : "";
+    var clsMK = !string.IsNullOrEmpty(errorMK) ? " is-invalid" : "";
+}
+
+<div class="page-header mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/NhanVien/Index">Nhân viên</a></li>
+            <li class="breadcrumb-item active">Thêm mới</li>
+        </ol>
+    </nav>
+    <h2 class="page-title"><i class="bi bi-person-plus-fill me-2"></i>Thêm nhân viên mới</h2>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        @if (!string.IsNullOrEmpty(errorMK) || !string.IsNullOrEmpty(errorTenDN))
+        {
+            <div class="alert alert-danger alert-dismissible fade show">
+                <i class="bi bi-exclamation-circle-fill me-2"></i>@(errorTenDN ?? errorMK)
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person-badge me-2"></i>Thông tin nhân viên</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="/NhanVien/Them">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="All" class="text-danger mb-3" role="alert"></div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Họ và tên <span class="text-danger">*</span></label>
+                            <input type="text" name="HoTen" value="@Model?.HoTen" class="form-control" required placeholder="Nguyễn Văn A" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Vai trò <span class="text-danger">*</span></label>
+                            <select name="ViTri" class="form-select" required>
+                                <option value="">-- Chọn vai trò --</option>
+                                <option value="Chủ cửa hàng"@Html.Raw(selChuCuaHang)>Chủ cửa hàng</option>
+                                <option value="Kế toán bán hàng"@Html.Raw(selKeToan)>Kế toán bán hàng</option>
+                                <option value="Nhân viên bán hàng"@Html.Raw(selNhanVien)>Nhân viên bán hàng</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Tên đăng nhập <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="text" name="TenDN" id="tenDN" value="@Model?.TenDN"
+                                       class="form-control@clsTenDN"
+                                       required maxlength="10" placeholder="Tối đa 10 ký tự"
+                                       oninput="kiemTraTenDN(this.value)" />
+                                <span class="input-group-text" id="tenDNStatus"><i class="bi bi-dash"></i></span>
+                            </div>
+                            <div id="tenDNMsg" class="small mt-1"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Số CCCD</label>
+                            <input type="text" name="CCCD" value="@Model?.CCCD" class="form-control" placeholder="12 chữ số" maxlength="12" pattern="[0-9]{12}" inputmode="numeric" required />
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Mật khẩu <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="password" name="MatKhauMoi" id="matKhau"
+                                       class="form-control@clsMK"
+                                       required placeholder="Nhập mật khẩu" oninput="kiemTraMatKhau(this.value)" />
+                                <button type="button" class="btn btn-outline-secondary" onclick="togglePwd()">
+                                    <i class="bi bi-eye" id="eyeIcon"></i>
+                                </button>
+                            </div>
+                            @if (!string.IsNullOrEmpty(errorMK))
+                            {
+                                <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle"></i> @errorMK</div>
+                            }
+                            <div id="pwdStrength" class="mt-2"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Số điện thoại</label>
+                            <input type="tel" name="SDT" value="@Model?.SDT" class="form-control" placeholder="0905xxxxxx" pattern="0[0-9]{9}" maxlength="10" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Địa chỉ</label>
+                        <input type="text" name="DiaChi" value="@Model?.DiaChi" class="form-control" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành" />
+                    </div>
+
+                    <div class="alert alert-info d-flex gap-3 p-3 mb-3" style="font-size:0.85rem">
+                        <i class="bi bi-info-circle-fill flex-shrink-0 mt-1"></i>
+                        <div>
+                            <strong>Yêu cầu mật khẩu:</strong>
+                            <ul class="mb-0 mt-1">
+                                <li id="req-len">Tối thiểu 8 ký tự</li>
+                                <li id="req-upper">Có ít nhất 1 chữ HOA</li>
+                                <li id="req-lower">Có ít nhất 1 chữ thường</li>
+                                <li id="req-special">Có ít nhất 1 ký tự đặc biệt</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a href="/NhanVien/Index" class="btn btn-secondary"><i class="bi bi-x-circle me-1"></i>Hủy</a>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Thêm nhân viên</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let tenDNTimeout;
+function kiemTraTenDN(val) {
+    clearTimeout(tenDNTimeout);
+    if (!val) return;
+    tenDNTimeout = setTimeout(() => {
+        fetch('/NhanVien/KiemTraTenDN?tenDN=' + encodeURIComponent(val))
+            .then(r => r.json())
+            .then(d => {
+                const msg = document.getElementById('tenDNMsg');
+                const icon = document.getElementById('tenDNStatus');
+                if (d.exists) {
+                    msg.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle-fill"></i> Tên đăng nhập đã tồn tại</span>';
+                    icon.innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i>';
+                } else {
+                    msg.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Tên đăng nhập khả dụng</span>';
+                    icon.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i>';
+                }
+            });
+    }, 400);
+}
+
+function kiemTraMatKhau(val) {
+    const checks = {
+        'req-len': val.length >= 8,
+        'req-upper': /[A-Z]/.test(val),
+        'req-lower': /[a-z]/.test(val),
+        'req-special': /[^a-zA-Z0-9]/.test(val)
+    };
+    for (const [id, ok] of Object.entries(checks)) {
+        const el = document.getElementById(id);
+        if (el) { el.style.color = ok ? '#198754' : '#dc3545'; el.style.fontWeight = ok ? '600' : 'normal'; }
+    }
+    const strength = Object.values(checks).filter(Boolean).length;
+    const bar = document.getElementById('pwdStrength');
+    const labels = ['', 'Rất yếu', 'Yếu', 'Khá', 'Mạnh'];
+    const colors = ['', 'danger', 'warning', 'info', 'success'];
+    bar.innerHTML = strength > 0 ? '<div class="d-flex align-items-center gap-2"><div class="progress flex-grow-1" style="height:6px"><div class="progress-bar bg-' + colors[strength] + '" style="width:' + (strength*25) + '%"></div></div><small class="text-' + colors[strength] + ' fw-semibold">' + labels[strength] + '</small></div>' : '';
+}
+
+function togglePwd() {
+    const inp = document.getElementById('matKhau');
+    const ico = document.getElementById('eyeIcon');
+    if (inp.type === 'password') {
+        inp.type = 'text';
+        ico.classList.replace('bi-eye', 'bi-eye-slash');
+    } else {
+        inp.type = 'password';
+        ico.classList.replace('bi-eye-slash', 'bi-eye');
+    }
+}
+</script>

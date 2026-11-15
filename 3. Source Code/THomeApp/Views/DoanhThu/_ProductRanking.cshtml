@@ -1,0 +1,15 @@
+@model ProductRanking
+<section class="revenue-ranking" data-ranking="@Model.Key">
+    <h2>@Model.Title</h2>
+    @if (Model.Rows.Count == 0) {
+        <div class="revenue-no-sales"><i class="fa-regular fa-file-lines" aria-hidden="true"></i><p>Không có dữ liệu!</p></div>
+    } else {
+        <div class="table-responsive"><table><thead><tr><th>Hạng</th><th>Sản phẩm</th><th>Đơn vị tính</th><th>Số lượng bán</th><th>Doanh thu (VNĐ)</th></tr></thead>
+        <tbody>
+        @for (var i = 0; i < Model.Rows.Count; i++) {
+            var row = Model.Rows[i];
+            <tr data-product="@row.Code" data-quantity="@row.Quantity" data-revenue="@row.Revenue.ToString(System.Globalization.CultureInfo.InvariantCulture)"><td><span class="revenue-rank @(i == 0 ? "first" : "")">@(i + 1)</span></td><td>@row.Name</td><td>@row.Unit</td><td>@row.Quantity.ToString("N0")</td><td>@row.Revenue.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</td></tr>
+        }
+        </tbody><tfoot><tr><th colspan="3">Tổng cộng</th><th>@Model.Rows.Sum(p => p.Quantity).ToString("N0")</th><th>@Model.Rows.Sum(p => p.Revenue).ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</th></tr></tfoot></table></div>
+    }
+</section>

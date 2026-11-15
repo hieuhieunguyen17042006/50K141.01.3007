@@ -1,0 +1,37 @@
+@using System.Globalization
+@model List<SanPham>
+@{ ViewData["Title"]="Sản phẩm"; }
+@section Styles { <link rel="stylesheet" href="~/css/catalog.css" asp-append-version="true" /> }
+<div class="catalog-page store-page product-page">
+    <h1 class="catalog-breadcrumb prominent">CỬA HÀNG <span>/ Sản phẩm</span></h1>
+    <header class="catalog-page-heading"><h1>Sản phẩm</h1><button class="catalog-primary" type="button" data-open-modal="productAddModal">+ Thêm</button></header>
+    <section class="catalog-panel">
+        <form method="get" class="catalog-search"><input class="form-control" name="search" value="@ViewBag.Search" placeholder="Tìm theo mã hoặc tên sản phẩm" aria-label="Tìm sản phẩm" /><button class="catalog-white" type="submit">Tìm</button></form>
+        <div class="catalog-table-wrap table-responsive"><table class="catalog-table" id="productsTable"><thead><tr><th>Mã sản phẩm</th><th>Tên sản phẩm</th><th>Danh mục</th><th>Đơn vị tính</th><th>Đơn giá (VNĐ)</th></tr></thead><tbody>
+        @foreach(var product in Model) {
+            var price=product.LichSuGia.Where(g=>g.NgayApDung<=DateTime.Now).OrderByDescending(g=>g.NgayApDung).ThenByDescending(g=>g.MaGia).FirstOrDefault()?.DonGia??0;
+            <tr data-product-code="@product.MaSP" tabindex="0" aria-selected="false"><td>@product.MaSP</td><td>@product.TenSP</td><td>@product.DanhMuc</td><td>@product.DonViTinh</td><td>@price.ToString("N0",CultureInfo.GetCultureInfo("vi-VN"))</td></tr>
+        }
+        @if(Model.Count==0) {<tr><td colspan="5" class="catalog-empty">Không tìm thấy sản phẩm phù hợp!</td></tr>}
+        </tbody></table></div>
+        <footer class="product-selection-actions"><small id="productSelectionHint">Chọn một sản phẩm để sửa hoặc xóa.</small><div><a class="catalog-edit disabled" id="editSelectedProduct" href="#" aria-disabled="true">Sửa</a><button type="button" class="catalog-delete" id="deleteSelectedProduct" disabled>Xóa</button></div></footer>
+    </section>
+</div>
+<div class="modal fade catalog-modal" id="productAddModal" tabindex="-1" aria-labelledby="productAddTitle" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <header class="catalog-modal-header"><h2 id="productAddTitle">Thêm sản phẩm</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></header>
+    <form method="post" asp-action="ThemSanPham" class="catalog-form" novalidate><div class="catalog-form-error" role="alert" hidden></div>
+        <div class="catalog-fields"><label>Mã sản phẩm <em>*</em><input class="form-control" name="MaSP" maxlength="50" required /><span data-error-for="MaSP"></span></label><label>Tên sản phẩm <em>*</em><input class="form-control" name="TenSP" maxlength="200" required /><span data-error-for="TenSP"></span></label>
+        <div class="catalog-two-columns"><label>Danh mục <em>*</em><input class="form-control" name="DanhMuc" maxlength="100" required /><span data-error-for="DanhMuc"></span></label><label>Đơn vị tính <em>*</em><input class="form-control" name="DonViTinh" maxlength="50" required /><span data-error-for="DonViTinh"></span></label></div>
+        <label>Đơn giá <em>*</em><input class="form-control" name="DonGia" type="number" min="1" step="1" required /><span data-error-for="DonGia"></span></label><label>Ghi chú<textarea class="form-control" name="GhiChu" maxlength="500"></textarea><span data-error-for="GhiChu"></span></label></div>
+        <footer class="catalog-modal-actions"><button class="catalog-white" type="button" data-bs-dismiss="modal">Hủy</button><button class="catalog-primary" type="submit">Lưu</button></footer>
+    </form>
+</div></div></div>
+<div class="modal fade catalog-modal" id="productDeleteModal" tabindex="-1" aria-labelledby="productDeleteTitle" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <header class="catalog-modal-header plain"><h2 id="productDeleteTitle">Xóa sản phẩm</h2></header>
+    <form method="post" asp-action="XoaSanPham" class="catalog-form" novalidate><input type="hidden" name="maSP" /><div class="catalog-form-error" role="alert" hidden></div><p id="productDeleteDescription"></p>
+        <label>Lý do xóa <em>*</em><textarea class="form-control" name="lyDoXoa" maxlength="500" rows="4" required></textarea><span data-error-for="lyDoXoa"></span></label>
+        <footer class="catalog-modal-actions"><button class="catalog-white" type="button" data-bs-dismiss="modal">Hủy</button><button class="catalog-primary" type="submit">Xác nhận</button></footer>
+    </form>
+</div></div></div>
+<partial name="_CatalogResult" />
+@section Scripts {<script src="~/js/catalog.js" asp-append-version="true"></script>}

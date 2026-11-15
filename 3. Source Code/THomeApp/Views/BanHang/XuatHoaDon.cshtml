@@ -1,0 +1,26 @@
+@model THomeApp.Models.HoaDon
+@{ ViewData["Title"] = "Hóa đơn đã tạo"; }
+<link rel="stylesheet" href="~/css/invoices.css" asp-append-version="true" />
+<div id="invoiceOutput" class="invoice-creation" data-auto-print="@(ViewBag.InHoaDonGiay == true ? "true" : "false")" data-export-id="@ViewBag.LanXuat" data-invoice-id="@Model.MaHD">
+    <div class="card-thome invoice-preview-panel">
+        <partial name="_HoaDonBanHang" model="Model" />
+    </div>
+    <aside class="invoice-export-panel invoice-output-controls">
+        <div class="invoice-export-options">
+            <h3>Kết quả xuất hóa đơn</h3>
+            <p class="text-success fw-bold" role="status">Tạo hóa đơn thành công.</p>
+            <p>Mã hóa đơn: <strong>@Model.MaHoaDon</strong></p>
+            @if (ViewBag.InHoaDonGiay == true) { <p id="invoicePrintStatus" role="status">Hóa đơn đã lưu, đang chuẩn bị in.</p> }
+            @if (ViewBag.GuiZalo == true) { <p id="invoiceZaloStatus" class="alert alert-warning">Chưa cấu hình dịch vụ gửi Zalo. Hóa đơn đã lưu, chưa gửi qua Zalo.</p> }
+            @if (ViewBag.GuiEmail == true) { <p id="invoiceEmailStatus" class="alert alert-warning">Chưa cấu hình dịch vụ gửi Email. Hóa đơn đã lưu, chưa gửi qua Email.</p> }
+        </div>
+        <div class="invoice-export-actions d-grid gap-3">
+            <button type="button" class="btn btn-thome-primary fw-bold py-2" onclick="window.print()">In hóa đơn giấy</button>
+            <a class="btn invoice-cancel fw-bold py-2" asp-action="ChiTietHoaDon" asp-route-id="@Model.MaHD">Xem chi tiết hóa đơn</a>
+            <a class="btn invoice-cancel fw-bold py-2" href="/BanHang/Index?tab=hoadon">Danh sách hóa đơn</a>
+        </div>
+    </aside>
+</div>
+@section Scripts {
+    <script src="~/js/invoice-export.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,113 @@
+@using System.Security.Claims
+@model List<NhanVien>
+@{
+    ViewData["Title"] = "NHÂN VIÊN";
+    var currentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var success = TempData["EmployeeSuccess"] as string;
+    var accountUsername = TempData["EmployeeAccountUsername"] as string;
+    var accountPassword = TempData["EmployeeAccountPassword"] as string;
+}
+@section Styles { <link rel="stylesheet" href="~/css/employees.css" asp-append-version="true" /> }
+<div class="employee-page" data-employee-success="@success">
+    <h1 class="employee-breadcrumb">NHÂN VIÊN</h1>
+    @if (TempData["Success"] is string notice) { <div class="alert alert-success" role="status">@notice</div> }
+    @if (TempData["Error"] is string error) { <div class="alert alert-danger" role="alert">@error</div> }
+    <section class="employee-panel">
+        <header class="employee-panel-header"><h2>Danh sách nhân viên</h2><button type="button" class="employee-button" id="employeeAddButton">+ Thêm nhân viên</button></header>
+        <div class="employee-table-wrap table-responsive">
+            <table class="employee-table"><thead><tr><th>Mã NV</th><th>Họ và tên</th><th>Số điện thoại</th><th>Số CCCD</th><th>Vị trí</th><th>Địa chỉ</th><th>Thao tác</th></tr></thead><tbody>
+            @foreach (var employee in Model) {
+                <tr data-employee-id="@employee.MaNV" class="@(employee.TrangThai == "Đã khóa" ? "employee-locked" : "")">
+                    <td><a asp-action="ChiTiet" asp-route-id="@employee.MaNV">@employee.MaNV</a></td>
+                    <td>@employee.HoTen</td><td>@employee.SDT</td><td>@(employee.CCCD ?? "—")</td>
+                    <td>@(employee.ViTri == "Nhân viên bán hàng" ? "Bán hàng" : employee.ViTri == "Kế toán bán hàng" ? "Kế toán" : employee.ViTri)</td>
+                    <td>@(employee.DiaChi ?? "—")</td>
+                    <td><div class="employee-row-actions"><button type="button" class="employee-edit" data-edit-employee="@employee.MaNV">Sửa</button>
+                    @if (employee.TrangThai == "Đã khóa") { <button class="employee-lock" type="button" disabled>Đã khóa</button> }
+                    else { <button class="employee-lock" type="button" data-lock-employee="@employee.MaNV" disabled="@(employee.MaNV == currentId)" title="@(employee.MaNV == currentId ? "Không thể khóa tài khoản của chính mình" : "Khóa tài khoản")">Khóa</button> }
+                    </div></td>
+                </tr>
+            }
+            @if (Model.Count == 0) { <tr><td colspan="7" class="text-center py-5">Không tìm thấy nhân viên nào.</td></tr> }
+            </tbody></table>
+        </div>
+    </section>
+    <details class="employee-filters"><summary>Tìm kiếm và lọc nhân viên</summary>
+        <form method="get" asp-action="Index">
+            <label>Tìm kiếm<input class="form-control" name="search" value="@ViewBag.Search" placeholder="Họ tên, tên đăng nhập, SĐT, CCCD" /></label>
+            <label>Vị trí<select class="form-select" name="vaiTro"><option value="">Tất cả vị trí</option>
+                @foreach(var role in new[]{"Chủ cửa hàng","Nhân viên bán hàng","Kế toán bán hàng"}) { <option value="@role" selected="@(ViewBag.VaiTro == role)">@(role == "Nhân viên bán hàng" ? "Bán hàng" : role == "Kế toán bán hàng" ? "Kế toán" : role)</option> }
+            </select></label>
+            <label>Trạng thái<select class="form-select" name="trangThai"><option value="">Tất cả trạng thái</option>
+                @foreach(var state in new[]{"Đang hoạt động","Đã khóa"}) { <option value="@state" selected="@(ViewBag.TrangThai == state)">@state</option> }
+            </select></label><button type="submit" class="employee-button">Lọc</button><a asp-action="Index">Xóa lọc</a>
+        </form>
+    </details>
+</div>
+
+<div class="modal fade employee-modal" id="employeeAddModal" tabindex="-1" aria-labelledby="employeeAddTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <header class="employee-modal-header"><h2 id="employeeAddTitle">Thêm thông tin nhân viên mới</h2></header>
+        <form method="post" asp-action="LuuThongTin" class="employee-profile-form" novalidate>
+            <div class="employee-form-error" role="alert" hidden></div>
+            <div class="employee-form-grid">
+                <label for="employeeAddName">Họ và tên nhân viên <em>*</em><input class="form-control" id="employeeAddName" name="HoTen" maxlength="100" required /><span data-error-for="HoTen"></span></label>
+                <label for="employeeAddPhone">Số điện thoại <em>*</em><input class="form-control" id="employeeAddPhone" name="SDT" type="tel" inputmode="numeric" pattern="0[0-9]{9}" maxlength="10" required /><span data-error-for="SDT"></span></label>
+                <label for="employeeAddIdentity">Số CCCD <em>*</em><input class="form-control" id="employeeAddIdentity" name="CCCD" inputmode="numeric" pattern="[0-9]{12}" maxlength="12" required /><span data-error-for="CCCD"></span></label>
+                <label for="employeeAddRole">Vị trí công việc <em>*</em><select class="form-select" id="employeeAddRole" name="ViTri" required><option value="">Chọn vị trí công việc</option><option value="Nhân viên bán hàng">Bán hàng</option><option value="Kế toán bán hàng">Kế toán</option></select><span data-error-for="ViTri"></span></label>
+                <label class="employee-full-row" for="employeeAddAddress">Địa chỉ<input class="form-control" id="employeeAddAddress" name="DiaChi" maxlength="255" /><span data-error-for="DiaChi"></span></label>
+            </div>
+            <footer class="employee-modal-actions"><button type="button" class="employee-cancel" data-bs-dismiss="modal">Hủy</button><button type="submit" class="employee-button">Lưu</button></footer>
+        </form>
+    </div></div>
+</div>
+
+<div class="modal fade employee-modal" id="employeeEditModal" tabindex="-1" aria-labelledby="employeeEditTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <header class="employee-modal-header"><h2 id="employeeEditTitle">Sửa thông tin nhân viên</h2></header>
+        <form method="post" asp-action="LuuThongTin" class="employee-profile-form" novalidate>
+            <input type="hidden" name="id" />
+            <div class="employee-form-error" role="alert" hidden></div>
+            <div class="employee-form-grid">
+                <label for="employeeEditCode">Mã nhân viên<input class="form-control" id="employeeEditCode" readonly /></label>
+                <label for="employeeEditName">Họ và tên nhân viên <em>*</em><input class="form-control" id="employeeEditName" name="HoTen" maxlength="100" required /><span data-error-for="HoTen"></span></label>
+                <label for="employeeEditIdentity">Số CCCD <em>*</em><input class="form-control" id="employeeEditIdentity" name="CCCD" inputmode="numeric" pattern="[0-9]{12}" maxlength="12" required /><span data-error-for="CCCD"></span></label>
+                <label for="employeeEditRole">Vị trí công việc <em>*</em><select class="form-select" id="employeeEditRole" name="ViTri" required><option value="">Chọn vị trí công việc</option><option value="Nhân viên bán hàng">Bán hàng</option><option value="Kế toán bán hàng">Kế toán</option></select><input class="form-control" id="employeeEditOwnerRole" value="Chủ cửa hàng" readonly hidden /><input type="hidden" id="employeeEditOwnerRoleValue" name="ViTri" value="Chủ cửa hàng" disabled /><span data-error-for="ViTri"></span></label>
+                <label for="employeeEditPhone">Số điện thoại <em>*</em><input class="form-control" id="employeeEditPhone" name="SDT" type="tel" inputmode="numeric" pattern="0[0-9]{9}" maxlength="10" required /><span data-error-for="SDT"></span></label>
+                <label for="employeeEditAddress">Địa chỉ<input class="form-control" id="employeeEditAddress" name="DiaChi" maxlength="255" /><span data-error-for="DiaChi"></span></label>
+            </div>
+            <footer class="employee-modal-actions"><button type="button" class="employee-cancel" data-bs-dismiss="modal">Hủy</button><button type="submit" class="employee-button">Lưu</button></footer>
+        </form>
+    </div></div>
+</div>
+
+<div class="modal fade employee-modal" id="employeeLockModal" tabindex="-1" aria-labelledby="employeeLockTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <header class="employee-modal-header"><h2 id="employeeLockTitle">Khóa tài khoản nhân viên</h2></header>
+        <form method="post" asp-action="DoiTrangThai" class="employee-lock-form">
+            <input type="hidden" name="id" /><p class="employee-lock-warning"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Bạn chắc chắn muốn khóa tài khoản này?</p>
+            <div class="employee-form-error" role="alert" hidden></div>
+            <div class="employee-form-grid">
+                <label>Mã nhân viên<input class="form-control" data-lock-field="maNV" readonly /></label><label>Họ và tên nhân viên<input class="form-control" data-lock-field="hoTen" readonly /></label>
+                <label>Số CCCD<input class="form-control" data-lock-field="cccd" readonly /></label><label>Vị trí công việc<input class="form-control" data-lock-field="viTri" readonly /></label>
+                <label>Số điện thoại<input class="form-control" data-lock-field="sdt" readonly /></label><label>Địa chỉ<input class="form-control" data-lock-field="diaChi" readonly /></label>
+            </div>
+            <footer class="employee-modal-actions"><button type="button" class="employee-cancel" data-bs-dismiss="modal">Hủy</button><button type="submit" class="employee-button">Đồng ý</button></footer>
+        </form>
+    </div></div>
+</div>
+
+<div class="modal fade employee-result-modal employee-modal" id="employeeResultModal" tabindex="-1" aria-labelledby="employeeResultTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+        <div class="employee-result-body"><i class="fa-regular fa-circle-check" aria-hidden="true"></i><h2 id="employeeResultTitle">@success</h2>
+        @if (!string.IsNullOrEmpty(accountPassword)) {
+            <section class="employee-account-notice"><p>Tài khoản đã cấp. Vui lòng lưu thông tin để bàn giao cho nhân viên; mật khẩu chỉ hiển thị lần này.</p>
+                <label>Tên đăng nhập<input class="form-control" id="employeeAccountUsername" value="@accountUsername" readonly autocomplete="off" /></label>
+                <label>Mật khẩu<input class="form-control" id="employeeAccountPassword" value="@accountPassword" readonly autocomplete="off" /></label>
+            </section>
+        }
+        </div>
+    </div></div>
+</div>
+@section Scripts { <script src="~/js/employees.js" asp-append-version="true"></script> }

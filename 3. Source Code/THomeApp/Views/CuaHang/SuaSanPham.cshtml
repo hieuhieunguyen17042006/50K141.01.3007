@@ -1,0 +1,21 @@
+@using System.Globalization
+@model ProductInput
+@{ViewData["Title"]="Sửa sản phẩm";}
+@section Styles {<link rel="stylesheet" href="~/css/catalog.css" asp-append-version="true" />}
+<div class="catalog-page store-page product-page">
+    <nav class="catalog-breadcrumb">CỬA HÀNG / <a asp-action="Index">Sản phẩm</a> / <strong>Sửa sản phẩm</strong></nav>
+    <header class="catalog-page-heading"><h1>Sửa sản phẩm</h1></header>
+    <section class="catalog-panel product-editor"><h2>Thông tin sản phẩm</h2>
+        <form method="post" asp-action="SuaSanPham" class="catalog-form" novalidate><div class="catalog-form-error" role="alert" hidden></div>
+            <div class="catalog-editor-fields catalog-fields"><div class="catalog-two-columns"><label>Mã sản phẩm<input class="form-control" name="MaSP" value="@Model.MaSP" readonly /></label><label>Danh mục <em>*</em><input class="form-control" name="DanhMuc" value="@Model.DanhMuc" maxlength="100" required /><span data-error-for="DanhMuc"></span></label></div>
+            <label>Tên sản phẩm <em>*</em><input class="form-control" name="TenSP" value="@Model.TenSP" maxlength="200" required /><span data-error-for="TenSP"></span></label>
+            <div class="catalog-two-columns"><label>Đơn giá <em>*</em><input class="form-control" name="DonGia" type="number" step="1" min="1" value="@Model.DonGia?.ToString("0.##",CultureInfo.InvariantCulture)" required /><span data-error-for="DonGia"></span></label><label>Đơn vị tính <em>*</em><input class="form-control" name="DonViTinh" value="@Model.DonViTinh" maxlength="50" required /><span data-error-for="DonViTinh"></span></label></div>
+            <label>Ghi chú<textarea class="form-control" name="GhiChu" maxlength="500">@Model.GhiChu</textarea><span data-error-for="GhiChu"></span></label>
+            <label>Lý do sửa <em>*</em><textarea class="form-control" name="LyDo" maxlength="500" required></textarea><span data-error-for="LyDo"></span></label>
+            <small>Giá mới áp dụng cho đơn tạo sau khi lưu; hóa đơn cũ giữ nguyên đơn giá đã chốt.</small></div>
+            <footer class="catalog-modal-actions"><a class="catalog-white" asp-action="Index">Hủy</a><button type="submit" class="catalog-primary">Lưu</button></footer>
+        </form>
+    </section>
+</div>
+<partial name="_CatalogResult" />
+@section Scripts {<script src="~/js/catalog.js" asp-append-version="true"></script>}

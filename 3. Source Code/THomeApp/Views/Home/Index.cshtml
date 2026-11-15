@@ -1,0 +1,34 @@
+@using System.Globalization
+@{ ViewData["Title"] = "Trang chủ";
+var days = ViewBag.DailyRevenue as List<DailyRevenue> ?? new();
+var products = ViewBag.TopProducts as List<ProductSummary> ?? new();
+var peak = Math.Max(days.Select(d => Math.Max(Math.Abs(d.Cash), Math.Abs(d.Transfer))).DefaultIfEmpty(1).Max(),1);
+var maxQty = Math.Max(products.Select(p=>p.Quantity).DefaultIfEmpty(1).Max(),1);
+var maxRevenue = Math.Max(products.Select(p=>p.Revenue).DefaultIfEmpty(1).Max(),1);
+var birthdays = ViewBag.BirthdayCustomers as List<KhachHang> ?? new();
+var milestones = ViewBag.MilestoneCustomers as List<KhachHang> ?? new();
+var requests = ViewBag.PendingUnlockRequests as List<YeuCauMoKhoa> ?? new();
+}
+@if(User.IsInRole("Chủ cửa hàng") && requests.Count > 0){<div class="alert alert-warning"><a href="/CuaHang/YeuCauMoKhoa">Có @requests.Count yêu cầu mở khóa đang chờ duyệt</a></div>}
+@if(birthdays.Count>0){<div class="alert alert-info">Sinh nhật hôm nay: @string.Join(", ",birthdays.Select(k=>k.HoTen))</div>}
+<div class="card-thome mb-3"><div class="p-1">
+<h4 class="fw-bold">Doanh thu thuần <span class="badge text-dark ms-3" style="background:#69c4ff">@string.Format("{0:N0} đ", ViewBag.TodayRevenue)</span></h4>
+<span class="badge bg-white text-dark mb-2">Theo ngày · 7 ngày gần nhất</span>
+<div class="chart-box"><div class="revenue-chart" role="img" aria-label="Biểu đồ thu ròng theo ngày">
+@foreach(var day in days){
+<div class="day-bars" title="@day.Day.ToString("dd/MM"): Tiền mặt @day.Cash.ToString("N0") đ, chuyển khoản @day.Transfer.ToString("N0") đ">
+<span style="height:@((Math.Abs(day.Cash)/peak*95).ToString("0.##",CultureInfo.InvariantCulture))%;background:#7971e8"></span>
+<span style="height:@((Math.Abs(day.Transfer)/peak*95).ToString("0.##",CultureInfo.InvariantCulture))%;background:#70cbb9"></span><small>@day.Day.ToString("dd-MM")</small>
+</div>}
+</div><div class="chart-legend"><span style="background:#7971e8"></span>Tiền mặt <span class="ms-3" style="background:#70cbb9"></span>Chuyển khoản · Sau hoàn tiền</div></div>
+</div></div>
+<div class="card-thome mb-3"><div class="p-1"><h4 class="fw-bold">Top sản phẩm bán chạy</h4><div class="row g-3">
+<div class="col-lg-6"><span class="badge bg-white text-dark mb-2">Theo sản phẩm bán ra</span><div class="chart-box pb-2">
+@foreach(var item in products.OrderByDescending(p=>p.Quantity)){<div class="product-bar"><span>@item.Name</span><i style="width:@((item.Quantity*100m/maxQty).ToString("0.##",CultureInfo.InvariantCulture))%"></i><strong>@item.Quantity</strong></div>}
+@if(products.Count==0){<p>Chưa có dữ liệu bán hàng.</p>}
+</div></div><div class="col-lg-6"><span class="badge bg-white text-dark mb-2">Theo doanh thu</span><div class="chart-box pb-2">
+@foreach(var item in products){<div class="product-bar"><span>@item.Name</span><i style="width:@((item.Revenue*100m/maxRevenue).ToString("0.##",CultureInfo.InvariantCulture))%"></i><strong>@((item.Revenue/1000000).ToString("0.#")) tr</strong></div>}
+@if(products.Count==0){<p>Chưa có dữ liệu bán hàng.</p>}
+</div></div></div></div></div>
+<div class="metric-strip"><a href="/BanHang/Index?tab=hoadon">Hóa đơn hôm nay<strong>@ViewBag.TodayOrderCount</strong></a><a href="/BanHang/Index?tab=hoadon&status=Đã đặt cọc">Công nợ hiện tại<strong>@string.Format("{0:N0} đ",ViewBag.TotalDebt)</strong></a><a href="/BanHang/Index?tab=hoadon&status=Đã đặt cọc">Công trình còn nợ<strong>@ViewBag.CongTrinhCount</strong></a></div>
+@if(milestones.Count>0){<div class="alert alert-info mt-3">Khách đạt mốc tích lũy: @string.Join(", ",milestones.Select(k=>k.HoTen))</div>}

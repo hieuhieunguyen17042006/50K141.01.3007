@@ -1,0 +1,760 @@
+@inject THomeApp.Services.PaymentQr PaymentQr
+@{
+    ViewData["Title"] = "Tạo Hóa Đơn Tạm Tính";
+    var khachHangs = ViewBag.KhachHangs as List<THomeApp.Models.KhachHang> ?? new();
+    var sanPhams = ViewBag.SanPhams;
+    var chietKhaus = ViewBag.ChietKhaus as List<THomeApp.Models.ChietKhau> ?? new();
+}
+
+@Html.AntiForgeryToken()
+<div class="row g-4" id="orderApp">
+    <!-- LEFT COLUMN: Customer Selection & Product Table -->
+    <div class="col-12 col-xl-8">
+        <!-- Customer Info Card -->
+        <div class="card-thome mb-4">
+            <div class="card-thome-header d-flex justify-content-between align-items-center">
+                <h5 class="card-thome-title">
+                    <i class="fa-solid fa-user-tag text-primary"></i> Thông tin khách hàng
+                </h5>
+                <button type="button" class="btn btn-sm btn-outline-primary fw-bold" data-bs-toggle="modal" data-bs-target="#quickAddCustomerModal">
+                    <i class="fa-solid fa-user-plus me-1"></i> Thêm khách mới
+                </button>
+            </div>
+            <div class="card-thome-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-bold small">Chọn khách hàng <span class="text-danger">*</span></label>
+                        <input type="search" id="customerSearch" class="form-control mb-2" placeholder="Tìm khách hàng theo tên / số điện thoại" oninput="filterCustomers(this.value)" />
+                        <select id="selectCustomer" class="form-select" onchange="onCustomerChange(this)">
+                            <option value="">-- Tìm và chọn khách hàng --</option>
+                            @foreach (var k in khachHangs)
+                            {
+                                <option value="@k.MaKH"
+                                        data-name="@k.HoTen"
+                                        data-phone="@k.SDT"
+                                        data-address="@k.DiaChi"
+                                        data-type="@k.LoaiKhach"
+                                        data-company="@k.TenCongTy"
+                                        data-mst="@k.MaSoThue"
+                                        data-accum="@(k.TongTichLuy.ToString(System.Globalization.CultureInfo.InvariantCulture))">
+                                    @k.HoTen (@k.SDT) @(!string.IsNullOrEmpty(k.TenCongTy) ? $" - {k.TenCongTy}" : "")
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-bold small">Số điện thoại</label>
+                        <input type="text" id="custPhone" class="form-control bg-light" readonly placeholder="SĐT khách hàng" />
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label fw-bold small">Điểm tích lũy hiện tại</label>
+                        <div class="input-group">
+                            <input type="text" id="custAccum" class="form-control bg-light text-primary fw-bold" readonly value="0 đ" />
+                            <span class="input-group-text bg-light text-primary" id="discountBadge">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Table Card -->
+        <div class="card-thome">
+            <div class="card-thome-header d-flex justify-content-between align-items-center">
+                <h5 class="card-thome-title">
+                    <i class="fa-solid fa-boxes-stacked text-primary"></i> Danh mục sản phẩm cần mua
+                </h5>
+                <button type="button" class="btn btn-sm btn-thome-primary" onclick="addProductRow()">
+                    <i class="fa-solid fa-plus me-1"></i> Thêm sản phẩm
+                </button>
+            </div>
+            <div class="card-thome-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle mb-0" id="productTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 45%;">Tên sản phẩm & Mã</th>
+                                <th style="width: 12%;" class="text-center">ĐVT</th>
+                                <th style="width: 13%;" class="text-center">Số lượng</th>
+                                <th style="width: 15%;" class="text-end">Đơn giá</th>
+                                <th style="width: 15%;" class="text-end">Thành tiền</th>
+                                <th style="width: 50px;" class="text-center">Xóa</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productTableBody">
+                            <!-- Rows inserted dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="emptyRowNotice" class="text-center py-4 text-muted">
+                    <i class="fa-solid fa-cart-arrow-down fs-3 mb-2"></i>
+                    <div>Chưa có sản phẩm nào. Nhấn nút <strong>"Thêm sản phẩm"</strong> để bắt đầu.</div>
+                </div>
+                <div class="p-3 mt-4">                    <div class="col-12">
+                        <label class="form-label fw-bold small">Địa chỉ giao hàng</label>
+                        <input type="text" id="deliveryAddress" class="form-control" placeholder="Nhập địa chỉ nhận hàng" />
+                    </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-bold">Ghi chú đơn hàng:</label>
+                    <textarea id="orderNote" class="form-control" rows="2" placeholder="Ghi chú thêm..."></textarea>
+                </div>
+
+                <!-- Action Buttons -->
+</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT COLUMN: Payment Breakdown, Shipping, Discount & Deposit -->
+    <div class="col-12 col-xl-4">
+        <div class="card-thome sticky-top" style="top: 80px;">
+            <div class="card-thome-header">
+                <h5 class="card-thome-title">
+                    <i class="fa-solid fa-calculator text-primary"></i> Chi tiết thanh toán
+                </h5>
+            </div>
+            <div class="card-thome-body">
+                <!-- Subtotal -->
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Tổng tiền hàng:</span>
+                    <strong class="fs-6" id="displaySubtotal">0 đ</strong>
+                </div>
+
+                <!-- Shipping fee -->
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Chi phí vận chuyển gộp (VNĐ):</label>
+                    <input type="number" id="inputShipping" class="form-control text-end" value="0" min="0" step="10000" oninput="calculateTotal()" />
+                    <small class="text-muted" style="font-size: 11px;">Gộp trực tiếp vào đơn (BR-UC2.1-01)</small>
+                </div>
+
+                <!-- Discount -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span class="text-muted">Chiết khấu tích lũy:</span>
+                        <span class="badge bg-success-soft text-success fw-bold ms-1" id="displayDiscountRate">0%</span>
+                    </div>
+                    <strong class="text-success" id="displayDiscountAmount">- 0 đ</strong>
+                </div>
+
+                <!-- VAT -->
+                <div class="mb-3">
+                    <div class="form-check form-switch mb-1">
+                        <input class="form-check-input" type="checkbox" id="checkVAT" onchange="calculateTotal()" />
+                        <label class="form-check-label small fw-bold" for="checkVAT">Thuế VAT (10%)</label>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted small">Tiền thuế:</span>
+                        <span class="small fw-bold" id="displayVAT">0 đ</span>
+                    </div>
+                </div>
+
+                <hr class="my-3" />
+
+                <!-- Total Amount -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="fw-bold fs-5 text-dark">Tổng thanh toán:</span>
+                    <span class="fw-bold fs-4 text-primary" id="displayTotal">0 đ</span>
+                </div>
+
+                <!-- Deposit Checkbox (30% - 100%) -->
+                <div class="card bg-light border p-3 mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="checkDeposit" onchange="toggleDeposit()" />
+                        <label class="form-check-label fw-bold text-dark" for="checkDeposit">
+                            Đơn hàng công trình (Đặt cọc trước)
+                        </label>
+                    </div>
+
+                    <div id="depositSection" style="display: none;" class="mt-2 pt-2 border-top">
+                        <label class="form-label small fw-bold">Tỷ lệ đặt cọc (30% - 100%):</label>
+                        <div class="input-group mb-2">
+                            <input type="number" id="inputDepositPercent" class="form-control text-end" value="30" min="30" max="100" oninput="calculateDeposit()" />
+                            <span class="input-group-text">%</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Tiền cọc cần thu:</span>
+                            <strong class="text-warning" id="displayDepositAmount">0 đ</strong>
+                        </div>
+                        <div class="d-flex justify-content-between small">
+                            <span>Còn lại phải thu:</span>
+                            <strong class="text-danger" id="displayRemainingAmount">0 đ</strong>
+                        </div>
+
+                        <div class="mt-2">
+                            <label class="form-label small fw-bold">Hạn thanh toán số còn lại:</label>
+                            <input type="date" id="inputDueDate" class="form-control form-control-sm" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Method -->
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Phương thức thanh toán dự kiến:</label>
+                    <select id="selectPaymentMethod" class="form-select">
+                        <option value="Chuyển khoản">Chuyển khoản (Mã QR)</option>
+                        <option value="Tiền mặt">Tiền mặt tại quầy</option>
+                    </select>
+                </div>
+
+                <!-- Notes -->
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-thome-primary py-2 fw-bold" id="btnSubmitOrder" onclick="saveOrder(false)">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Lưu đơn tạm tính
+                    </button>
+                    <button type="button" class="btn btn-thome-primary py-2 fw-bold" id="btnCompleteAndQR" onclick="saveOrder(true)">
+                        <i class="fa-solid fa-qrcode me-1"></i> Hoàn thành
+                    </button>
+                    <a href="/BanHang/Index" class="btn btn-outline-secondary py-2">
+                        <i class="fa-solid fa-xmark me-1"></i> Hủy
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL QUICK ADD CUSTOMER (UC_3.1) -->
+<div class="modal fade" id="quickAddCustomerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header modal-header-thome">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-user-plus me-2"></i> Thêm khách hàng mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="quickCustomerForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Loại khách hàng:</label>
+                        <select id="newCustType" class="form-select" onchange="toggleCompanyFields(this.value)">
+                            <option value="Cá nhân">Cá nhân</option>
+                            <option value="Doanh nghiệp">Doanh nghiệp</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Họ và tên <span class="text-danger">*</span></label>
+                        <input type="text" id="newCustName" class="form-control" required placeholder="Nhập họ tên khách hàng" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Số điện thoại <span class="text-danger">*</span></label>
+                        <input type="text" id="newCustPhone" class="form-control" required placeholder="0xxxxxxxxx (10 chữ số)" maxlength="10" />
+                        <small class="text-muted" style="font-size: 11px;">Bắt đầu bằng số 0, đủ 10 số (BR-UC3.1-02)</small>
+                    </div>
+
+                    <div id="companyFields" style="display: none;">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Tên công ty <span class="text-danger">*</span></label>
+                            <input type="text" id="newCustCompany" class="form-control" placeholder="Tên công ty / nhà thầu" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Mã số thuế <span class="text-danger">*</span></label>
+                            <input type="text" id="newCustMST" class="form-control" placeholder="10 hoặc 13 chữ số" maxlength="13" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Địa chỉ</label>
+                        <input type="text" id="newCustAddress" class="form-control" placeholder="Địa chỉ giao nhận" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Email</label>
+                        <input type="email" id="newCustEmail" class="form-control" placeholder="email@domain.com" />
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="button" class="btn btn-thome-primary fw-bold" onclick="submitQuickCustomer()">Lưu khách hàng</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // Available Products JSON for dynamic row selection
+    const availableProducts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(sanPhams));
+    let currentSavedOrderId = "";
+
+    function filterCustomers(value) {
+        for (const option of document.getElementById('selectCustomer').options)
+            option.hidden = !!option.value && !option.text.toLocaleLowerCase('vi').includes(value.toLocaleLowerCase('vi'));
+    }
+    function onCustomerChange(sel) {
+        const opt = sel.options[sel.selectedIndex];
+        if (!opt || !opt.value) {
+            document.getElementById('custPhone').value = "";
+            document.getElementById('deliveryAddress').value = "";
+            document.getElementById('custAccum').value = "0 đ";
+            document.getElementById('discountBadge').innerText = "0%";
+            calculateTotal();
+            return;
+        }
+
+        const phone = opt.getAttribute('data-phone') || "";
+        const addr = opt.getAttribute('data-address') || "";
+        const accum = parseFloat(opt.getAttribute('data-accum')) || 0;
+
+        document.getElementById('custPhone').value = phone;
+        document.getElementById('deliveryAddress').value = addr;
+        document.getElementById('custAccum').value = accum.toLocaleString('vi-VN') + " đ";
+
+        // Mốc ưu đãi: >= 1 tỷ -> 3%, >= 500 triệu -> 2%
+        const discounts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(chietKhaus.Select(c => new { threshold = c.MocTichLuy, rate = c.TyLeChietKhau })));
+        let rate = discounts.filter(c => accum >= c.threshold).sort((a,b) => b.threshold-a.threshold)[0]?.rate || 0;
+
+        document.getElementById('discountBadge').innerText = rate + "%";
+        calculateTotal();
+    }
+
+    const productsByCode = new Map(availableProducts.map(product => [product.MaSP, product]));
+
+    function normalizeProductSearch(value) {
+        return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd')
+            .toLocaleLowerCase('vi').trim().replace(/\s+/g, ' ');
+    }
+
+    function getSelectedProduct(row) {
+        const product = productsByCode.get(row.querySelector('.product-code').value);
+        return product && product.DonGia > 0 && row.querySelector('.product-name').value === product.TenSP ? product : null;
+    }
+
+    function closeProductSuggestions(row) {
+        const input = row.querySelector('.product-name');
+        const menu = document.getElementById(input.getAttribute('aria-controls'));
+        if (menu) menu.hidden = true;
+        input.setAttribute('aria-expanded', 'false');
+        input.removeAttribute('aria-activedescendant');
+    }
+
+    function positionProductSuggestions(row) {
+        const input = row.querySelector('.product-name');
+        const menu = document.getElementById(input.getAttribute('aria-controls'));
+        const bounds = input.getBoundingClientRect();
+        menu.style.left = bounds.left + 'px';
+        menu.style.top = (bounds.bottom + 4) + 'px';
+        menu.style.width = bounds.width + 'px';
+        menu.style.maxHeight = Math.max(0, Math.min(260, window.innerHeight - bounds.bottom - 12)) + 'px';
+    }
+
+    function showProductSuggestions(row) {
+        document.querySelectorAll('#productTableBody tr').forEach(other => {
+            if (other !== row) closeProductSuggestions(other);
+        });
+        const input = row.querySelector('.product-name');
+        const menu = document.getElementById(input.getAttribute('aria-controls'));
+        menu.replaceChildren();
+        input.removeAttribute('aria-activedescendant');
+        const query = normalizeProductSearch(input.value);
+        if (!query) { closeProductSuggestions(row); return; }
+
+        const terms = query.split(' ');
+        const matches = availableProducts.filter(product => product.DonGia > 0 &&
+            terms.every(term => normalizeProductSearch(product.TenSP + ' ' + product.MaSP).includes(term)));
+        if (matches.length === 0) {
+            const message = document.createElement('div');
+            message.className = 'product-no-results p-2';
+            message.setAttribute('role', 'status');
+            message.textContent = 'Không tìm thấy sản phẩm phù hợp!';
+            menu.appendChild(message);
+        }
+        matches.forEach((product, index) => {
+            const option = document.createElement('button');
+            option.type = 'button';
+            option.id = menu.id + '_option_' + index;
+            option.className = 'product-suggestion';
+            option.dataset.productCode = product.MaSP;
+            option.setAttribute('role', 'option');
+            option.setAttribute('aria-selected', 'false');
+            option.tabIndex = -1;
+            const name = document.createElement('strong');
+            name.textContent = product.TenSP;
+            const detail = document.createElement('small');
+            detail.textContent = product.MaSP + ' · ' + product.DonViTinh + ' · ' + product.DonGia.toLocaleString('vi-VN') + ' đ';
+            option.append(name, detail);
+            // Keep focus on the input until the click selects the product.
+            option.addEventListener('pointerdown', event => event.preventDefault());
+            option.addEventListener('click', () => selectProduct(row, product));
+            menu.appendChild(option);
+        });
+        menu.hidden = false;
+        input.setAttribute('aria-expanded', 'true');
+        positionProductSuggestions(row);
+    }
+
+    function setProductSelectionError(row, message) {
+        const input = row.querySelector('.product-name');
+        input.setCustomValidity(message);
+        input.classList.toggle('is-invalid', !!message);
+        input.setAttribute('aria-invalid', message ? 'true' : 'false');
+        const error = row.querySelector('.product-selection-error');
+        error.textContent = message;
+        error.hidden = !message;
+    }
+
+    function selectProduct(row, product) {
+        row.querySelector('.product-name').value = product.TenSP;
+        row.querySelector('.product-code').value = product.MaSP;
+        row.querySelector('.product-selected-code').textContent = product.MaSP;
+        setProductSelectionError(row, '');
+        closeProductSuggestions(row);
+        updateProductRow(row);
+    }
+
+    function updateProductRow(row) {
+        const product = getSelectedProduct(row);
+        const quantity = Number(row.querySelector('.col-qty').value);
+        const validQuantity = Number.isInteger(quantity) && quantity > 0 && quantity <= 100000;
+        row.querySelector('.col-dvt').textContent = product?.DonViTinh || '-';
+        row.querySelector('.col-price').textContent = (product?.DonGia || 0).toLocaleString('vi-VN') + ' đ';
+        row.querySelector('.col-total').textContent = ((product && validQuantity) ? product.DonGia * quantity : 0).toLocaleString('vi-VN') + ' đ';
+        calculateTotal();
+    }
+
+    function addProductRow(focusInput = true) {
+        document.getElementById('emptyRowNotice').style.display = 'none';
+        const tbody = document.getElementById('productTableBody');
+        const rowId = 'row_' + crypto.randomUUID();
+
+        const tr = document.createElement('tr');
+        tr.id = rowId;
+        tr.innerHTML = `
+            <td>
+                <input type="text" class="form-control product-name" id="${rowId}_name" placeholder="Nhập tên sản phẩm"
+                       aria-label="Tên sản phẩm" role="combobox" aria-autocomplete="list" aria-expanded="false"
+                       aria-controls="${rowId}_suggestions" aria-describedby="${rowId}_error" autocomplete="off" />
+                <input type="hidden" class="product-code" />
+                <small class="product-selected-code text-muted d-block"></small>
+                <small id="${rowId}_error" class="product-selection-error text-danger" role="alert" hidden></small>
+            </td>
+            <td class="text-center text-muted col-dvt">-</td>
+            <td>
+                <input type="number" class="form-control text-center col-qty" aria-label="Số lượng" value="1" min="1" max="100000" step="1" required oninput="onQuantityChange('${rowId}')" />
+            </td>
+            <td class="text-end fw-semibold col-price">0 đ</td>
+            <td class="text-end fw-bold text-primary col-total">0 đ</td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeProductRow('${rowId}')">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+        // A fixed list stays below its input without being clipped by table-responsive.
+        const menu = document.createElement('div');
+        menu.id = rowId + '_suggestions';
+        menu.className = 'order-product-suggestions';
+        menu.setAttribute('role', 'listbox');
+        menu.setAttribute('aria-label', 'Sản phẩm phù hợp');
+        menu.hidden = true;
+        document.body.appendChild(menu);
+
+        const input = tr.querySelector('.product-name');
+        input.addEventListener('input', () => {
+            const needsReselect = !!tr.querySelector('.product-code').value || input.classList.contains('is-invalid');
+            tr.querySelector('.product-code').value = '';
+            tr.querySelector('.product-selected-code').textContent = '';
+            setProductSelectionError(tr, needsReselect ? 'Vui lòng chọn lại sản phẩm từ danh sách.' : '');
+            updateProductRow(tr);
+            showProductSuggestions(tr);
+        });
+        input.addEventListener('focus', () => showProductSuggestions(tr));
+        input.addEventListener('blur', () => closeProductSuggestions(tr));
+        input.addEventListener('keydown', event => {
+            if (event.key === 'Escape') { closeProductSuggestions(tr); return; }
+            if (!['ArrowDown', 'ArrowUp', 'Enter'].includes(event.key)) return;
+            if (event.key === 'Enter' && menu.hidden) return;
+            if (menu.hidden) showProductSuggestions(tr);
+            const options = [...menu.querySelectorAll('[role="option"]')];
+            if (!options.length) return;
+            const active = options.findIndex(option => option.getAttribute('aria-selected') === 'true');
+            event.preventDefault();
+            if (event.key === 'Enter') { if (active >= 0) options[active].click(); return; }
+            const next = event.key === 'ArrowDown' ? (active + 1) % options.length : (active <= 0 ? options.length - 1 : active - 1);
+            options.forEach((option, index) => option.setAttribute('aria-selected', String(index === next)));
+            input.setAttribute('aria-activedescendant', options[next].id);
+            options[next].scrollIntoView({ block: 'nearest' });
+        });
+        if (focusInput) input.focus();
+    }
+
+    function removeProductRow(rowId) {
+        const row = document.getElementById(rowId);
+        if (row) {
+            document.getElementById(row.querySelector('.product-name').getAttribute('aria-controls')).remove();
+            row.remove();
+        }
+        const tbody = document.getElementById('productTableBody');
+        if (tbody.children.length === 0) {
+            document.getElementById('emptyRowNotice').style.display = 'block';
+        }
+        calculateTotal();
+    }
+
+    function onQuantityChange(rowId) {
+        updateProductRow(document.getElementById(rowId));
+    }
+
+    function calculateTotal() {
+        const rows = document.querySelectorAll('#productTableBody tr');
+        let subtotal = 0;
+
+        rows.forEach(r => {
+            const product = getSelectedProduct(r);
+            const qty = Number(r.querySelector('.col-qty').value);
+            if (product && Number.isInteger(qty) && qty > 0 && qty <= 100000) subtotal += product.DonGia * qty;
+        });
+
+        document.getElementById('displaySubtotal').innerText = subtotal.toLocaleString('vi-VN') + " đ";
+
+        // Discount calculation
+        const custSel = document.getElementById('selectCustomer');
+        const custOpt = custSel.options[custSel.selectedIndex];
+        let rate = 0;
+        if (custOpt && custOpt.value) {
+            const accum = parseFloat(custOpt.getAttribute('data-accum')) || 0;
+            if (accum >= 1000000000) rate = 3;
+            else if (accum >= 500000000) rate = 2;
+        }
+
+        document.getElementById('displayDiscountRate').innerText = rate + "%";
+        const discountAmount = Math.round(subtotal * (rate / 100));
+        document.getElementById('displayDiscountAmount').innerText = "- " + discountAmount.toLocaleString('vi-VN') + " đ";
+
+        // Shipping
+        const shipping = parseFloat(document.getElementById('inputShipping').value) || 0;
+
+        // VAT
+        const isVAT = document.getElementById('checkVAT').checked;
+        const vatAmount = isVAT ? Math.round((subtotal - discountAmount) * 0.1) : 0;
+        document.getElementById('displayVAT').innerText = vatAmount.toLocaleString('vi-VN') + " đ";
+
+        // Total
+        const total = (subtotal - discountAmount) + shipping + vatAmount;
+        document.getElementById('displayTotal').innerText = total.toLocaleString('vi-VN') + " đ";
+
+        // Deposit
+        calculateDeposit();
+    }
+
+    function toggleDeposit() {
+        const isDep = document.getElementById('checkDeposit').checked;
+        document.getElementById('depositSection').style.display = isDep ? 'block' : 'none';
+        calculateDeposit();
+    }
+
+    function calculateDeposit() {
+        const isDep = document.getElementById('checkDeposit').checked;
+        if (!isDep) return;
+
+        const totalStr = document.getElementById('displayTotal').innerText.replace(/\D/g, '');
+        const total = parseFloat(totalStr) || 0;
+        let pct = parseFloat(document.getElementById('inputDepositPercent').value) || 30;
+
+        if (pct < 30) pct = 30;
+        if (pct > 50) pct = 50;
+
+        const depAmount = Math.round(total * (pct / 100));
+        const remAmount = total - depAmount;
+
+        document.getElementById('displayDepositAmount').innerText = depAmount.toLocaleString('vi-VN') + " đ";
+        document.getElementById('displayRemainingAmount').innerText = remAmount.toLocaleString('vi-VN') + " đ";
+    }
+
+    function toggleCompanyFields(type) {
+        document.getElementById('companyFields').style.display = type === 'Doanh nghiệp' ? 'block' : 'none';
+    }
+
+    // Submit Quick Add Customer
+    function submitQuickCustomer() {
+        const type = document.getElementById('newCustType').value;
+        const name = document.getElementById('newCustName').value.trim();
+        const phone = document.getElementById('newCustPhone').value.trim();
+        const addr = document.getElementById('newCustAddress').value.trim();
+        const email = document.getElementById('newCustEmail').value.trim();
+        const company = document.getElementById('newCustCompany').value.trim();
+        const mst = document.getElementById('newCustMST').value.trim();
+
+        if (!name || !phone) {
+            alert('Vui lòng nhập họ tên và số điện thoại!');
+            return;
+        }
+
+        if (!/^0\d{9}$/.test(phone)) {
+            alert('Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0 (BR-UC3.1-02)!');
+            return;
+        }
+
+        if (type === 'Doanh nghiệp' && (!company || !mst)) {
+            alert('Khách hàng doanh nghiệp bắt buộc nhập Tên công ty và Mã số thuế (BR-UC3.1-01)!');
+            return;
+        }
+
+        const data = {
+            LoaiKhach: type,
+            HoTen: name,
+            SDT: phone,
+            DiaChi: addr,
+            Email: email,
+            TenCongTy: company,
+            MaSoThue: mst
+        };
+
+        fetch('/KhachHang/LuuKhachHangAjax', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                const sel = document.getElementById('selectCustomer');
+                const opt = document.createElement('option');
+                opt.value = res.kh.maKH;
+                opt.text = `${res.kh.hoTen} (${res.kh.sdt}) ${res.kh.tenCongTy ? ' - ' + res.kh.tenCongTy : ''}`;
+                opt.setAttribute('data-name', res.kh.hoTen);
+                opt.setAttribute('data-phone', res.kh.sdt);
+                opt.setAttribute('data-address', res.kh.diaChi || '');
+                opt.setAttribute('data-accum', '0');
+                sel.appendChild(opt);
+                sel.value = res.kh.maKH;
+                onCustomerChange(sel);
+
+                const modal = bootstrap.Modal.getInstance(document.getElementById('quickAddCustomerModal'));
+                modal.hide();
+                alert('Thêm khách hàng mới thành công!');
+            } else {
+                alert(res.message);
+            }
+        })
+        .catch(err => alert('Lỗi: ' + err));
+    }
+
+    // Save Order (Anti-duplicate double submit protection)
+    let isSubmitting = false;
+
+    function saveOrder(showQR) {
+        if (isSubmitting) return;
+        if (currentSavedOrderId) { redirectToDetail(); return; }
+
+        const custId = document.getElementById('selectCustomer').value;
+        if (!custId) {
+            alert('Vui lòng chọn khách hàng!');
+            return;
+        }
+
+        const rows = document.querySelectorAll('#productTableBody tr');
+        const items = [];
+        for (const row of rows) {
+            const product = getSelectedProduct(row);
+            if (!product) {
+                setProductSelectionError(row, 'Vui lòng chọn sản phẩm hợp lệ từ danh sách hoặc xóa dòng này.');
+                const input = row.querySelector('.product-name');
+                input.focus();
+                input.reportValidity();
+                return;
+            }
+            const quantityInput = row.querySelector('.col-qty');
+            if (!quantityInput.checkValidity() || !Number.isInteger(Number(quantityInput.value)) || Number(quantityInput.value) <= 0) {
+                quantityInput.reportValidity();
+                quantityInput.focus();
+                return;
+            }
+            items.push({ MaSP: product.MaSP, SoLuong: Number(quantityInput.value), DonGia: product.DonGia });
+        }
+
+        if (items.length === 0) {
+            alert('Vui lòng thêm ít nhất một sản phẩm!');
+            return;
+        }
+
+        const isDeposit = document.getElementById('checkDeposit').checked;
+        const depPct = isDeposit ? (parseFloat(document.getElementById('inputDepositPercent').value) || 30) : 0;
+        const shipping = parseFloat(document.getElementById('inputShipping').value) || 0;
+        const isVAT = document.getElementById('checkVAT').checked;
+        const subtotal = parseFloat(document.getElementById('displaySubtotal').innerText.replace(/\D/g, '')) || 0;
+        const discountAmount = parseFloat(document.getElementById('displayDiscountAmount').innerText.replace(/\D/g, '')) || 0;
+        const vatAmount = isVAT ? Math.round((subtotal - discountAmount) * 0.1) : 0;
+        const total = (subtotal - discountAmount) + shipping + vatAmount;
+        const depAmount = isDeposit ? Math.round(total * (depPct / 100)) : 0;
+
+        const payload = {
+            MaKH: custId,
+            DiaChiGiao: document.getElementById('deliveryAddress').value,
+            GhiChu: document.getElementById('orderNote').value,
+            ChiPhiVanChuyen: shipping,
+            TienThue: vatAmount,
+            ApDungVAT: isVAT,
+            IsDatCoc: isDeposit,
+            TyLeDatCoc: depPct,
+            TienDatCoc: depAmount,
+            HanThanhToan: isDeposit ? (document.getElementById('inputDueDate').value || null) : null,
+            PhuongThucThanhToan: document.getElementById('selectPaymentMethod').value,
+            SanPhams: items
+        };
+
+        // Disable buttons to prevent duplicate submission
+        isSubmitting = true;
+        document.getElementById('btnSubmitOrder').disabled = true;
+        document.getElementById('btnCompleteAndQR').disabled = true;
+
+        fetch('/BanHang/LuuDonTamTinh', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(r => r.json())
+        .then(res => {
+            isSubmitting = false;
+            document.getElementById('btnSubmitOrder').disabled = false;
+            document.getElementById('btnCompleteAndQR').disabled = false;
+
+            if (res.success) {
+                currentSavedOrderId = res.maHD;
+                if (showQR) {
+                    window.location.href = '/BanHang/MaQR?id=' + encodeURIComponent(res.maHD);
+                } else {
+                    alert('Lưu đơn tạm tính thành công! Mã đơn: ' + res.maHD);
+                    window.location.href = '/BanHang/ChiTietHoaDon?id=' + res.maHD;
+                }
+            } else {
+                alert(res.message);
+            }
+        })
+        .catch(err => {
+            isSubmitting = false;
+            document.getElementById('btnSubmitOrder').disabled = false;
+            document.getElementById('btnCompleteAndQR').disabled = false;
+            alert('Lỗi gửi dữ liệu: ' + err);
+        });
+    }
+
+    function redirectToDetail() {
+        if (currentSavedOrderId) {
+            window.location.href = '/BanHang/ChiTietHoaDon?id=' + currentSavedOrderId;
+        } else {
+            window.location.href = '/BanHang/Index';
+        }
+    }
+
+    // Auto initialize with 1 product row
+    window.addEventListener('DOMContentLoaded', () => {
+        addProductRow(false);
+    });
+    function positionOpenProductSuggestions() {
+        document.querySelectorAll('#productTableBody tr').forEach(row => {
+            if (row.querySelector('.product-name').getAttribute('aria-expanded') === 'true') positionProductSuggestions(row);
+        });
+    }
+    window.addEventListener('resize', positionOpenProductSuggestions);
+    window.addEventListener('scroll', positionOpenProductSuggestions, true);
+</script>
+}

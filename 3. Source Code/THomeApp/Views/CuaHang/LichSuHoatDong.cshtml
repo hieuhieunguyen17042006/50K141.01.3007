@@ -1,0 +1,20 @@
+@using System.Text.RegularExpressions
+@model List<LichSuHoatDong>
+@{ViewData["Title"]="Lịch sử hoạt động";}
+@section Styles {<link rel="stylesheet" href="~/css/catalog.css" asp-append-version="true" />}
+<div class="catalog-page store-page">
+    <h1 class="catalog-breadcrumb prominent">CỬA HÀNG <span>/ Lịch sử hoạt động</span></h1>
+    <section class="catalog-panel tall"><header class="catalog-panel-heading"><h2>Danh sách lịch sử hoạt động</h2><form class="catalog-search" method="get"><input class="form-control" name="search" value="@ViewBag.Search" placeholder="Nhập từ khóa tìm kiếm" aria-label="Tìm lịch sử" /><button class="catalog-white" type="submit">Tìm</button></form></header>
+        <div class="catalog-table-wrap table-responsive"><table class="catalog-table" id="activityTable"><thead><tr><th>Thời gian thực hiện</th><th>Người thực hiện</th><th>Nội dung thao tác</th><th>Lý do</th></tr></thead><tbody>
+        @foreach(var entry in Model){
+            var count=Regex.Match(entry.NoiDungThaoTac,@"lần\s+(?:thứ\s+)?(\d+)",RegexOptions.IgnoreCase);
+            var number=entry.LoaiDoiTuong=="HoaDon"&&entry.NoiDungThaoTac.StartsWith("Ghi đè",StringComparison.OrdinalIgnoreCase)&&count.Success&&int.TryParse(count.Groups[1].Value,out var parsed)?parsed:0;
+            <tr><td>@entry.ThoiGianThaoTac.ToString("dd/MM/yyyy")<br />@entry.ThoiGianThaoTac.ToString("HH:mm")</td><td>@(entry.NhanVien?.HoTen??entry.MaNV)<small class="d-block">@entry.NhanVien?.ViTri</small></td><td>@entry.NoiDungThaoTac
+            @if(number>=2&&number<=6){<span class="catalog-status @(number>=5?"rejected":"pending")">@(number>=5?"Cảnh báo nặng":"Cảnh báo nhẹ")</span>}
+            </td><td>@(entry.LyDo??"—")</td></tr>
+        }
+        @if(Model.Count==0){<tr><td colspan="4" class="catalog-empty">Không tìm thấy lịch sử phù hợp!</td></tr>}
+        </tbody></table></div>
+    </section>
+</div>
+@section Scripts {<script src="~/js/catalog.js" asp-append-version="true"></script>}

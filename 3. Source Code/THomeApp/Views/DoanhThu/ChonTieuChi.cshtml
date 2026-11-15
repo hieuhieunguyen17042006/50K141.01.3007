@@ -1,0 +1,12 @@
+@{ ViewData["Title"] = "Thống kê sản phẩm bán chạy"; }
+@section Styles { <link rel="stylesheet" href="~/css/revenue.css" asp-append-version="true" /> }
+<div class="revenue-page">
+    <nav class="revenue-breadcrumb" aria-label="Đường dẫn"><a asp-action="Index">DOANH THU</a> / Thống kê sản phẩm bán chạy</nav>
+    <h1>Thống kê sản phẩm bán chạy</h1>
+    <section class="revenue-criteria-panel">
+        <h2>Chọn tiêu chí thống kê</h2>
+        <a class="revenue-button" asp-action="BanChay" asp-route-tieuChi="ca2">Cả 2 tiêu chí</a>
+        <a class="revenue-button" asp-action="BanChay" asp-route-tieuChi="doanhthu">Doanh thu</a>
+        <a class="revenue-button" asp-action="BanChay" asp-route-tieuChi="soluong">Số lượng bán ra</a>
+    </section>
+</div>

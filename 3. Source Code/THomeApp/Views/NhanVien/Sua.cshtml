@@ -1,0 +1,156 @@
+@model THomeApp.Models.NhanVien
+@{
+    ViewData["Title"] = "Chỉnh sửa nhân viên";
+    var errorTenDN = ViewBag.ErrorTenDN as string;
+    var errorMK = ViewBag.ErrorMatKhauMoi as string;
+    var selChu = (Model?.ViTri == "Chủ cửa hàng") ? " selected" : "";
+    var selKT = (Model?.ViTri == "Kế toán bán hàng") ? " selected" : "";
+    var selNV = (Model?.ViTri == "Nhân viên bán hàng") ? " selected" : "";
+    var clsTenDN = !string.IsNullOrEmpty(errorTenDN) ? " is-invalid" : "";
+    var clsMK = !string.IsNullOrEmpty(errorMK) ? " is-invalid" : "";
+}
+
+<div class="page-header mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/NhanVien/Index">Nhân viên</a></li>
+            <li class="breadcrumb-item active">Chỉnh sửa</li>
+        </ol>
+    </nav>
+    <h2 class="page-title"><i class="bi bi-pencil-fill me-2"></i>Chỉnh sửa thông tin nhân viên</h2>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        @if (!string.IsNullOrEmpty(errorMK) || !string.IsNullOrEmpty(errorTenDN))
+        {
+            <div class="alert alert-danger alert-dismissible fade show">
+                <i class="bi bi-exclamation-circle-fill me-2"></i>@(errorTenDN ?? errorMK)
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        <div class="card shadow-sm">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-person-gear me-2"></i>@Model?.HoTen <small class="ms-2 text-muted">(@Model?.MaNV)</small></h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="/NhanVien/Sua/@Model?.MaNV">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="All" class="text-danger mb-3" role="alert"></div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Họ và tên <span class="text-danger">*</span></label>
+                            <input type="text" name="HoTen" value="@Model?.HoTen" class="form-control" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Vai trò <span class="text-danger">*</span></label>
+                            <select name="ViTri" class="form-select" required>
+                                <option value="Chủ cửa hàng"@Html.Raw(selChu)>Chủ cửa hàng</option>
+                                <option value="Kế toán bán hàng"@Html.Raw(selKT)>Kế toán bán hàng</option>
+                                <option value="Nhân viên bán hàng"@Html.Raw(selNV)>Nhân viên bán hàng</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Tên đăng nhập <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="text" name="TenDN" id="tenDN" value="@Model?.TenDN"
+                                       class="form-control@clsTenDN"
+                                       required maxlength="10" oninput="kiemTraTenDN(this.value)" />
+                                <span class="input-group-text" id="tenDNStatus"><i class="bi bi-dash"></i></span>
+                            </div>
+                            <div id="tenDNMsg" class="small mt-1"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Số CCCD</label>
+                            <input type="text" name="CCCD" value="@Model?.CCCD" class="form-control" maxlength="12" pattern="[0-9]{12}" inputmode="numeric" required />
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Số điện thoại</label>
+                            <input type="tel" name="SDT" value="@Model?.SDT" class="form-control" pattern="0[0-9]{9}" maxlength="10" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Địa chỉ</label>
+                            <input type="text" name="DiaChi" value="@Model?.DiaChi" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mật khẩu mới <span class="text-muted small">(để trống nếu không đổi)</span></label>
+                        <div class="input-group">
+                            <input type="password" name="MatKhauMoi" id="matKhau"
+                                   class="form-control@clsMK"
+                                   placeholder="Nhập mật khẩu mới (tùy chọn)" oninput="kiemTraMatKhau(this.value)" />
+                            <button type="button" class="btn btn-outline-secondary" onclick="togglePwd()">
+                                <i class="bi bi-eye" id="eyeIcon"></i>
+                            </button>
+                        </div>
+                        @if (!string.IsNullOrEmpty(errorMK))
+                        {
+                            <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle"></i> @errorMK</div>
+                        }
+                        <div id="pwdStrength" class="mt-1"></div>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a href="/NhanVien/Index" class="btn btn-secondary"><i class="bi bi-x-circle me-1"></i>Hủy</a>
+                        <button type="submit" class="btn btn-warning"><i class="bi bi-check-circle me-1"></i>Lưu thay đổi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let tenDNTimeout;
+const originalTenDN = '@Model?.TenDN';
+const maNV = '@Model?.MaNV';
+
+function kiemTraTenDN(val) {
+    clearTimeout(tenDNTimeout);
+    if (!val || val === originalTenDN) return;
+    tenDNTimeout = setTimeout(() => {
+        fetch('/NhanVien/KiemTraTenDN?tenDN=' + encodeURIComponent(val) + '&maNV=' + encodeURIComponent(maNV))
+            .then(r => r.json())
+            .then(d => {
+                const msg = document.getElementById('tenDNMsg');
+                const icon = document.getElementById('tenDNStatus');
+                if (d.exists) {
+                    msg.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle-fill"></i> Tên đăng nhập đã tồn tại</span>';
+                    icon.innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i>';
+                } else {
+                    msg.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Tên đăng nhập khả dụng</span>';
+                    icon.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i>';
+                }
+            });
+    }, 400);
+}
+
+function kiemTraMatKhau(val) {
+    if (!val) { document.getElementById('pwdStrength').innerHTML = ''; return; }
+    const strength = [val.length >= 8, /[A-Z]/.test(val), /[a-z]/.test(val), /[^a-zA-Z0-9]/.test(val)].filter(Boolean).length;
+    const colors = ['danger', 'warning', 'info', 'success'];
+    const labels = ['Rất yếu', 'Yếu', 'Khá', 'Mạnh'];
+    const idx = Math.max(0, strength - 1);
+    document.getElementById('pwdStrength').innerHTML = '<div class="d-flex align-items-center gap-2 mt-1"><div class="progress flex-grow-1" style="height:5px"><div class="progress-bar bg-' + colors[idx] + '" style="width:' + (strength*25) + '%"></div></div><small class="text-' + colors[idx] + ' fw-semibold">' + labels[idx] + '</small></div>';
+}
+
+function togglePwd() {
+    const inp = document.getElementById('matKhau');
+    const ico = document.getElementById('eyeIcon');
+    if (inp.type === 'password') {
+        inp.type = 'text';
+        ico.classList.replace('bi-eye', 'bi-eye-slash');
+    } else {
+        inp.type = 'password';
+        ico.classList.replace('bi-eye-slash', 'bi-eye');
+    }
+}
+</script>

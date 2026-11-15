@@ -1,0 +1,19 @@
+* text=auto eol=lf
+*.cs text eol=lf
+*.cshtml text eol=lf
+*.csproj text eol=lf
+*.json text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+*.md text eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.docx binary
+"3. Source Code/THomeApp/wwwroot/lib/**" -whitespace
