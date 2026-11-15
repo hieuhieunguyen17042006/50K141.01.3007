@@ -1,0 +1,11 @@
+.login-result-modal .modal-dialog{max-width:620px}.login-result-modal .modal-content{border:0;border-radius:15px;min-height:289px;color:#083e70}
+.login-result-modal .btn-close{position:absolute;right:30px;top:30px;z-index:2}.login-result-modal .modal-body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:60px 25px}
+.login-result-modal h2{font-size:25px;font-weight:750;text-align:center;margin:0}.login-warning{display:grid;place-items:center;background:#ffe5e1;color:red;border-radius:50%;width:64px;height:64px}.login-warning svg{width:27px;height:27px;fill:none;stroke:currentColor;stroke-width:1.5}
+.form-error-bottom{font-style:italic}.form-error-bottom>i,.feedback-info-icon{font-family:Georgia,serif!important;font-style:normal;display:inline-flex;align-items:center;justify-content:center;border:2px solid #f22;border-radius:50%;color:#f22;background:transparent!important;width:29px;height:29px;font-size:21px;padding:0!important;flex-shrink:0}.form-error-bottom>i::before{content:'i'}
+.catalog-result[data-notice-kind="warning"] .catalog-result-body>i{background:#ffe8e4;color:#ef2424}.catalog-result[data-notice-kind="warning"] .catalog-result-body>i::before{content:'i';font-family:Georgia,serif}
+.catalog-form .form-control.is-invalid,.catalog-form .form-select.is-invalid{border-color:#ff2525!important;transition:none}
+.sidebar-menu .menu-link i{color:#083e70!important}
+.form-error-bottom:not([hidden]){display:flex;align-items:center;gap:10px;color:#f22;font-style:italic}
+/* Remove validation glyphs only in these forms; preserve select arrows and native date controls. */
+:is(.catalog-form,.employee-profile-form,.voucher-form,#orderApp,#collectMoneyModal) .form-control.is-invalid{background-image:none!important;box-shadow:none!important}
+:is(.catalog-form,.employee-profile-form,.voucher-form,#orderApp,#collectMoneyModal) .form-select.is-invalid{--bs-form-select-bg-icon:none;background-image:var(--bs-form-select-bg-img)!important;background-position:right .75rem center;background-size:16px 12px;padding-right:2.25rem;box-shadow:none!important}

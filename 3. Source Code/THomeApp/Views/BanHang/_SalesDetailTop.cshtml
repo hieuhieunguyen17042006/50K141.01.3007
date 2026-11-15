@@ -1,0 +1,61 @@
+@model HoaDon
+@{
+    var issued = Model.LoaiChungTu == "HoaDon";
+    var role = ViewBag.UserRole as string ?? "Nhân viên bán hàng";
+    var active = Model.TrangThaiThanhToan != "Đã hủy";
+}
+<header class="sales-detail-toolbar">
+    <h1>@(issued ? "Chi tiết hóa đơn" : "Chi tiết đơn tạm tính " + Model.MaHD)</h1>
+    @if(issued&&Model.SoLanGhiDe>=2){<span class="sales-override-badge @(Model.SoLanGhiDe>=5?"danger":"warning")"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Cảnh báo: Hóa đơn đã ghi đè @Model.SoLanGhiDe lần.</span>}
+    <a class="btn invoice-cancel" href="/BanHang/Index?tab=@(issued ? "hoadon" : "dontamtinh")">Quay lại danh sách</a>
+</header>
+<div class="sales-detail-grid">
+    <div class="sales-detail-left @(issued ? "sales-invoice-paper" : "sales-draft-paper")">
+        @if (issued) {
+            <partial name="_HoaDonBanHang" model="Model" />
+        } else {
+            <section class="sales-customer-card">
+                <h2>Thông tin khách hàng</h2>
+                <h3>@(Model.KhachHang?.HoTen ?? "Khách lẻ")</h3>
+                <p>@Model.KhachHang?.SDT</p>
+                @if (!string.IsNullOrEmpty(Model.KhachHang?.TenCongTy)) { <p>@Model.KhachHang.TenCongTy · MST: @Model.KhachHang.MaSoThue</p> }
+                @if (!string.IsNullOrEmpty(Model.DiaChiGiao)) { <p class="sales-customer-address">Địa chỉ giao: @Model.DiaChiGiao</p> }
+            </section>
+            <section class="sales-purchased-card">
+                <h2>Chi tiết hàng đã mua</h2>
+                <div class="table-responsive"><table class="table" id="purchasedItemsTable">
+                    <thead><tr><th>Mặt hàng</th><th>Đã mua</th><th>Đã trả</th><th>Còn được trả</th></tr></thead><tbody>
+                    @foreach (var line in Model.ChiTietHoaDons) {
+                        <tr><td>@(line.TenSPDaChot ?? line.SanPham?.TenSP ?? line.MaSP)</td><td>@line.SoLuong @(line.SanPham?.DonViTinh)</td><td>@line.SoLuongDaTra</td><td>@line.SoLuongConLai @(line.SanPham?.DonViTinh)</td></tr>
+                    }
+                    </tbody>
+                </table></div>
+                @if (!string.IsNullOrEmpty(Model.GhiChu)) { <p class="sales-detail-note">Ghi chú: @Model.GhiChu</p> }
+            </section>
+        }
+    </div>
+    <aside class="sales-detail-aside @(issued ? "sales-invoice-aside" : "invoice-summary-draft")">
+        <partial name="_SalesPaymentSummary" model="Model" />
+        @if (!issued) {
+            <partial name="_SalesCollectionActions" model="Model" />
+            <div class="invoice-create-actions">
+                @if (ViewBag.CanIssue == true) { <a id="btnCreateInvoice" class="btn btn-thome-primary" asp-action="TaoHoaDon" asp-route-id="@Model.MaHD">Tạo hóa đơn</a> }
+                else { <button id="btnCreateInvoice" class="btn btn-thome-primary" type="button" disabled>Tạo hóa đơn</button> }
+                <a class="btn invoice-cancel" href="/BanHang/Index?tab=dontamtinh">Hủy</a>
+            </div>
+        } else {
+            <section class="sales-voucher-actions">
+                <h2>Tạo phiếu từ hóa đơn</h2>
+                @if(active){<a class="btn invoice-cancel" asp-action="TaoPhieuDoiTra" asp-route-id="@Model.MaHD">Tạo phiếu đổi trả</a><a class="btn invoice-cancel" asp-action="TaoPhieuCPPS" asp-route-id="@Model.MaHD">Tạo phiếu chi phí phát sinh</a>}
+                else{<button type="button" class="btn invoice-cancel" disabled>Tạo phiếu đổi trả</button><button type="button" class="btn invoice-cancel" disabled>Tạo phiếu chi phí phát sinh</button>}
+                @if (role is "Chủ cửa hàng" or "Kế toán bán hàng") {
+                    @if (ViewBag.CanOverride == true && active) { <a class="btn invoice-cancel" asp-action="TaoPhieuGhiDe" asp-route-id="@Model.MaHD">Tạo phiếu ghi đè</a> }
+                    else {
+                        <button class="btn invoice-cancel" type="button" disabled="@(!active)" data-bs-toggle="modal" data-bs-target="#unlockModal">Tạo phiếu ghi đè (Đã khóa)</button>
+                    }
+                }
+            </section>
+            <partial name="_SalesCollectionActions" model="Model" />
+        }
+    </aside>
+</div>

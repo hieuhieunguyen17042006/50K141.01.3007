@@ -1,0 +1,10 @@
+#orderApp .order-field-error{display:none!important}
+#orderApp .order-field-error:empty{display:none}
+#orderApp .is-invalid{border-color:#dc3545!important;box-shadow:0 0 0 1px #dc354520}
+#orderApp .order-cancel{background:#fff;color:#083e70;border:1px solid #b9d1e2}
+#orderFormError[hidden]{display:none}
+#orderApp .product-selection-error{display:none!important}
+#orderApp .order-feedback{margin-top:12px;text-align:left}#orderApp .order-feedback .form-error-bottom{margin:0 0 8px;font-size:22px;min-height:29px}#orderApp .order-feedback [hidden]{display:none!important}
+.order-add-product { margin:12px 16px 4px; }
+.order-total-row{gap:8px}.order-total-row>span:first-child{font-size:16px!important}.order-total-row #displayTotal{font-size:clamp(18px,1.3vw,24px)!important;white-space:nowrap}
+.order-payment{border:0;padding:0;margin:0 0 20px;min-width:0;color:#083e70}.order-payment legend{float:none;width:auto;margin:0 0 9px;font-size:15px;font-weight:700}.order-payment-options{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:13px}.order-payment-options label{padding:7px 10px;border:1px solid transparent;border-radius:6px;background:#edf2f5;font-size:14px;font-weight:700;cursor:pointer}.order-payment-options input:checked+label{background:#fff;border-color:#b9d1e2}.order-payment-options input:focus-visible+label{outline:2px solid #083e70;outline-offset:2px}.order-payment [hidden]{display:none!important}#depositSection>label{font-size:14px;font-weight:700;margin-bottom:5px}.order-deposit-percent{position:relative}.order-deposit-percent .form-control{padding-right:38px}.order-deposit-percent>span{position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none}.order-deposit-remaining{margin:9px 0 0;font-size:16px;font-weight:700}.order-deposit-remaining strong{font-weight:700}

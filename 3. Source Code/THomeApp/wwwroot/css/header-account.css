@@ -1,0 +1,24 @@
+.header-account{position:relative;display:flex;align-items:center;flex-shrink:0}
+.header-avatar{width:56px;height:56px;padding:0;border:0;border-radius:50%;color:#fff;background:transparent;cursor:pointer;display:grid;place-items:center}
+.header-avatar svg{width:56px;height:56px}.header-avatar:hover{background:#ffffff1f}.header-avatar:focus-visible{outline:3px solid #fff;outline-offset:4px}
+.header-account-menu{position:absolute;right:0;top:calc(100% + 12px);width:290px;max-width:calc(100vw - 30px);background:#fff;border:1px solid #d2e2ee;border-radius:12px;color:#083e70;box-shadow:0 10px 28px #00274738;z-index:1100;overflow:hidden;padding:8px}
+.header-account-menu[hidden]{display:none}.header-account-identity{padding:20px 18px;display:grid;gap:7px;border-bottom:1px solid #dfebf2;overflow-wrap:anywhere}.header-account-identity strong{font-size:17px}.header-account-identity span{font-size:14px;color:#607e98}
+.header-account-menu form{margin:0;padding:8px}.header-account-menu button{display:flex;gap:12px;align-items:center;width:100%;border:0;border-radius:7px;background:#fff;color:#a62732;padding:12px;font-weight:650;text-align:left}.header-account-menu button:hover,.header-account-menu button:focus-visible{background:#fff0f0;outline:2px solid #bdcfe0}
+@media(max-width:768px){.header-avatar,.header-avatar svg{width:45px;height:45px}.app-topbar .topbar-right{gap:14px}}
+.logout-confirmation .modal-dialog{position:absolute;top:calc(var(--topbar-height,87px) + 20px);right:30px;width:300px;max-width:calc(100vw - 24px);margin:0}
+.logout-confirmation .logout-confirm-card{min-height:175px;border:1px solid #d9d9d9;border-radius:4px;background:#fff;box-shadow:3px 5px 4px #0003;color:#111}
+.logout-confirmation form{margin:0;padding:65px 6px 24px}
+.logout-confirmation p{font-family:'Segoe UI',sans-serif;font-size:16px;line-height:20px;font-weight:700;text-align:center;margin:0 0 23px}
+.logout-confirm-actions{display:flex;justify-content:center;gap:39px}
+.logout-confirm-actions button{min-width:59px;min-height:40px;padding:7px 3px;border:1px solid #d2d2d2;border-radius:4px;background:#fff;color:#555;font-size:16px;font-weight:700;line-height:24px;box-shadow:0 1px 1px #0000000d}
+.logout-confirm-actions #confirmLogout{background:#083e70;border-color:#083e70;color:#fff}
+.logout-confirm-actions button:focus-visible{outline:3px solid #47a8e1;outline-offset:3px}
+.logout-confirm-actions button:disabled{opacity:.65;cursor:wait}
+body.logout-confirmation-open .modal-backdrop{background:#fff!important;opacity:.48!important}
+body.logout-confirmation-open :is(.app-content,.app-sidebar,.app-topbar){filter:none!important}
+@media print{.header-account,.logout-confirmation{display:none!important}}
+
+.header-account-menu{width:120px;border:1px solid #c9c9c9;border-radius:0;padding:3px;overflow:visible;box-shadow:0 2px 5px #0002;top:calc(100% + 14px)}
+.header-account-menu::before{content:"";position:absolute;right:20px;top:-12px;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:12px solid #fff}
+.header-account-menu button{display:block;border:1px solid #aeb9c1;border-radius:0;padding:1px 7px;text-align:center;color:#111;background:#eafaff;font-size:17px;line-height:22px;font-weight:600}
+.header-account-menu button:hover,.header-account-menu button:focus-visible{background:#d9f5ff;outline:2px solid #58a4d0}

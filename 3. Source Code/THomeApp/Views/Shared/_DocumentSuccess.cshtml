@@ -1,0 +1,7 @@
+@model SuccessNotice
+<div class="modal fade invoice-success-modal" id="@Model.TitleId.Replace("Title", "Modal")" tabindex="-1" aria-labelledby="@Model.TitleId" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+        <partial name="_SuccessNotice" model="Model" />
+    </div></div>
+</div>

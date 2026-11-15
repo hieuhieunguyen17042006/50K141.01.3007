@@ -1,0 +1,46 @@
+@using System.Globalization
+@using System.Text.Json
+@using THomeApp.Services
+@{ViewData["Title"]="Trang chủ";var chart=ViewBag.Dashboard as DashboardView??new();
+ var colors=new[]{"#7971e8","#70cbb9","#ffa49d","#e6b34c"};
+ string N(decimal n)=>n.ToString("0.##",CultureInfo.InvariantCulture);
+ var all=chart.Categories.SelectMany(c=>c.Values).ToList();
+ var high=all.DefaultIfEmpty(0).Max();var low=Math.Min(0,all.DefaultIfEmpty(0).Min());
+ var unit=Math.Max(1,Math.Ceiling(Math.Max(high-low,1)/5/1_000_000m))*1_000_000m;
+ var top=Math.Max(unit,Math.Ceiling(high/unit)*unit);var bottom=Math.Floor(low/unit)*unit;
+ decimal Y(decimal n)=>270-(n-bottom)/(top-bottom)*250;
+ var zero=Y(0);
+}
+@section Styles {<link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />}
+@if(User.IsInRole("Chủ cửa hàng")&&chart.PendingUnlockRequests>0){<div class="alert alert-warning"><a href="/CuaHang/YeuCauMoKhoa">Có @chart.PendingUnlockRequests yêu cầu mở khóa đang chờ duyệt</a></div>}
+@if(chart.BirthdayNames.Count>0){<div class="alert alert-info">Sinh nhật hôm nay: @string.Join(", ",chart.BirthdayNames)</div>}
+<div class="dashboard-page">
+    <section class="dashboard-panel"><h2>Doanh thu thuần <strong class="dashboard-net">@chart.NetToday.ToString("N0",CultureInfo.GetCultureInfo("vi-VN")) đ</strong></h2><span class="dashboard-tag">Theo ngày</span>
+    <div class="dashboard-revenue-plot">
+    <svg viewBox="0 0 1040 320" role="img" aria-label="Doanh thu hàng hóa sau chiết khấu theo ngày và danh mục, không gồm VAT và phí">
+        @for(var tick=bottom;tick<=top;tick+=unit){<g><line x1="65" x2="1020" y1="@N(Y(tick))" y2="@N(Y(tick))" stroke="#cdd6df" stroke-dasharray="2 3"/><text x="57" y="@N(Y(tick)+4)" text-anchor="end">@((tick/1_000_000m).ToString("0.##",CultureInfo.GetCultureInfo("vi-VN")))</text></g>}
+        <g><text x="65" y="13">Triệu đồng</text></g>
+        @for(var d=0;d<chart.Days.Count;d++){
+            var groupLeft=75+d*135m;var barWidth=chart.Categories.Count>0?Math.Min(34,112m/chart.Categories.Count):34;
+            <g><line x1="@N(groupLeft)" x2="@N(groupLeft)" y1="20" y2="270" stroke="#e2e6ed" stroke-dasharray="2 3"/><text x="@N(groupLeft+55)" y="292" text-anchor="middle">@chart.Days[d].ToString("dd-MM")</text></g>
+            @for(var c=0;c<chart.Categories.Count;c++){
+                var amount=chart.Categories[c].Values[d];
+                <g><rect x="@N(groupLeft+c*barWidth)" y="@N(Math.Min(zero,Y(amount)))" width="@N(barWidth-3)" height="@N(Math.Abs(Y(amount)-zero))" fill="@colors[c]" data-category="@chart.Categories[c].Name" data-date="@chart.Days[d].ToString("yyyy-MM-dd")" data-value="@N(amount)"><title>@chart.Categories[c].Name: @amount.ToString("N0") đ</title></rect></g>
+            }
+        }
+        <g><line x1="65" x2="1020" y1="@N(zero)" y2="@N(zero)" stroke="#a7b4c0"/></g>
+        @if(chart.Categories.Count==0){<g><text x="540" y="155" text-anchor="middle">Không có dữ liệu!</text></g>}
+    </svg>
+    <div class="dashboard-legend">@for(var i=0;i<chart.Categories.Count;i++){<span><i style="background:@colors[i]"></i>@chart.Categories[i].Name</span>}</div>
+    </div></section>
+    <section class="dashboard-panel"><h2>Top sản phẩm bán chạy</h2><div class="dashboard-top-grid">
+    @foreach(var kind in new[]{"quantity","revenue"}){
+        var rows=kind=="quantity"?chart.ByQuantity:chart.ByRevenue;
+        var peak=Math.Max(1,rows.Select(p=>kind=="quantity"?(decimal)p.Quantity:p.Revenue).DefaultIfEmpty(0).Max());
+        <div class="dashboard-top-column"><span class="dashboard-tag">@(kind=="quantity"?"Theo sản phẩm bán ra":"Theo doanh thu")</span>
+        <partial name="_ProductChart" model='new ProductRanking(kind=="quantity"?"Theo sản phẩm bán ra":"Theo doanh thu",kind,rows)' />
+        </div>
+    }
+    </div></section>
+</div>
+<script id="dashboardData" type="application/json">@Html.Raw(JsonSerializer.Serialize(chart))</script>

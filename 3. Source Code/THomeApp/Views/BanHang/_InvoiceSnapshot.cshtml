@@ -1,0 +1,15 @@
+@using System.Text.Json
+@model string
+@{
+    JsonDocument? document=null;
+    try{document=JsonDocument.Parse(Model);}catch(JsonException){}
+}
+@if(document!=null){using(document){var root=document.RootElement;var items=root.ValueKind==JsonValueKind.Array?root:root.TryGetProperty("Items",out var stored)?stored:default;
+    @if(root.ValueKind==JsonValueKind.Object){
+        <p>Tổng phải thu: <strong class="snapshot-total">@(root.TryGetProperty("TongThanhToan",out var total)?total.GetDecimal().ToString("N0"):"—") đ</strong> · Đã thu: @(root.TryGetProperty("DaThu",out var paid)?paid.GetDecimal().ToString("N0"):"—") đ · Đã hoàn thực tế: @(root.TryGetProperty("DaHoanKhach",out var refunded)?refunded.GetDecimal().ToString("N0"):"—") đ</p>
+        @if(root.TryGetProperty("GhiChu",out var note)){<p>Ghi chú: @note.ToString()</p>}
+    }
+    @if(items.ValueKind==JsonValueKind.Array){<table class="table table-bordered small"><thead><tr><th>Mã sản phẩm</th><th>Đơn giá đã lưu</th><th>Số lượng</th><th>Đã trả</th></tr></thead><tbody>
+    @foreach(var line in items.EnumerateArray()){<tr><td>@(line.TryGetProperty("MaSP",out var code)?code.ToString():"—")</td><td>@(line.TryGetProperty("DonGiaBan",out var price)?price.GetDecimal().ToString("N0"):line.TryGetProperty("DonGia",out var oldPrice)?oldPrice.GetDecimal().ToString("N0"):"—") đ</td><td>@(line.TryGetProperty("SoLuong",out var quantity)?quantity.ToString():"—")</td><td>@(line.TryGetProperty("SoLuongDaTra",out var returned)?returned.ToString():"—")</td></tr>}
+    </tbody></table>}
+}}

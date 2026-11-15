@@ -1,0 +1,36 @@
+@using System.Globalization
+@inject THomeApp.Services.PaymentQr PaymentQr
+@model OrderQrView
+@{ ViewData["Title"] = "Tạo hóa đơn tạm tính"; var payment = PaymentQr.CanPay(Model.Amount); var preparing = Model.PreparedId != null; var cash=preparing&&Model.Order.PhuongThucThanhToan=="Tiền mặt"; string Money(decimal n)=>n.ToString("N0",CultureInfo.GetCultureInfo("vi-VN"))+" đ"; }
+<link rel="stylesheet" href="~/css/sales.css" asp-append-version="true" />
+<div class="order-qr-page">
+    <section class="order-qr-panel"><div class="order-qr-content">
+        <article class="qr-sheet" id="qrPrintDocument" data-print-root="qr" data-qr-kind="@(payment?"payment":"internal")" data-order-id="@Model.Order.MaHD">
+            <h1>@(cash?"Xác nhận thanh toán tiền mặt":PaymentQr.LabelFor(Model.Amount))</h1>
+            <div class="qr-document-grid @(cash?"cash-summary-grid":"")">
+                @if(!cash){<div class="qr-image-area"><img id="orderQrImage" src="@(preparing?Url.Action("Prepared","Qr",new{id=Model.PreparedId}):Url.Action("Invoice","Qr",new{id=Model.Order.MaHD,amount=Model.Amount.ToString(CultureInfo.InvariantCulture)}))" width="320" height="320" alt="@PaymentQr.LabelFor(Model.Amount)" /></div>}
+                <div class="qr-order-information"><h2>CỬA HÀNG NỘI THẤT T-HOME</h2><p>36-38 Hói Kiểng 15, Phường Ngũ Hành Sơn<br />Điện thoại: 0123 456 789</p>
+                    <dl><dt>@(preparing?"Mã đơn dự kiến":"Mã đơn")</dt><dd>@Model.Order.MaHD</dd><dt>Khách hàng</dt><dd>@Model.Order.KhachHang?.HoTen</dd>
+                        <dt>@(Model.Order.TyLeDatCoc>0?"Tiền cọc cần thu lần này":"Số tiền cần thanh toán")</dt><dd class="qr-order-amount" data-qr-amount="@Model.Amount.ToString(CultureInfo.InvariantCulture)">@Money(Model.Amount)</dd>
+                        <dt>Tổng đơn</dt><dd id="qrOrderTotal">@Money(Model.Order.TongThanhToan)</dd>
+                        @if(Model.Order.TyLeDatCoc>0){<dt>Tỷ lệ đặt cọc</dt><dd>@Model.Order.TyLeDatCoc.ToString("0.##")%</dd><dt>Phần còn lại dự kiến sau khi thu cọc</dt><dd id="qrRemaining">@Money(Model.Order.TongThanhToan-Model.Amount)</dd>}
+                        @if(!cash&&payment){<dt>Ngân hàng</dt><dd>@(string.IsNullOrWhiteSpace(PaymentQr.BankName)?PaymentQr.BankBin:PaymentQr.BankName)</dd><dt>Số tài khoản</dt><dd>@PaymentQr.AccountNumber</dd>@if(!string.IsNullOrWhiteSpace(PaymentQr.AccountName)){<dt>Người thụ hưởng</dt><dd>@PaymentQr.AccountName</dd>}}
+                        @if(!cash){<dt>Nội dung chuyển khoản</dt><dd id="qrTransferContent">@PaymentQr.TransferContent(Model.Order.MaHD)</dd>}<dt>Phương thức</dt><dd>@Model.Order.PhuongThucThanhToan</dd>
+                    </dl>
+                </div>
+            </div>
+        </article>
+        <div class="alert alert-danger mx-4" role="alert" id="qrSaveError" hidden></div>
+        <div class="qr-screen-actions @(preparing?"qr-prepared-actions":"")">
+        @if(!preparing){<button type="button" class="btn invoice-cancel" id="printQrButton" data-print-document="qrPrintDocument">In mã QR</button>}
+        @if(preparing){
+            <form id="preparedOrderSave" method="post" asp-action="LuuDonDaChuanBi" data-prepared-id="@Model.PreparedId">
+                <button class="btn btn-thome-primary" type="submit" id="saveQrButton">Lưu</button>
+                <a class="btn invoice-cancel" id="cancelQrButton" asp-action="TaoDonTamTinh" asp-route-preparedId="@Model.PreparedId">Hủy</a>
+            </form>
+        }else{<div><a class="btn btn-thome-primary" asp-action="ChiTietHoaDon" asp-route-id="@Model.Order.MaHD">Chi tiết đơn</a><a class="btn invoice-cancel" href="/BanHang/Index?tab=dontamtinh">Hủy</a></div>}
+        </div>
+    </div></section>
+</div>
+@if(preparing){<div class="modal fade order-created-modal" id="orderCreatedModal" tabindex="-1" aria-labelledby="orderCreatedTitle" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><button type="button" class="btn-close" aria-label="Đóng" data-bs-dismiss="modal"></button><i class="fa-regular fa-circle-check" aria-hidden="true"></i><h2 id="orderCreatedTitle">Tạo đơn tạm tính thành công</h2><button class="btn btn-thome-primary" type="button" data-bs-dismiss="modal">Đóng</button></div></div></div>}
+@section Scripts {<script src="~/js/order-qr.js" asp-append-version="true"></script>}

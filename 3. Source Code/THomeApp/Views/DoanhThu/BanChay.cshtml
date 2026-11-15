@@ -1,0 +1,17 @@
+@model ProductStatistics
+@{ ViewData["Title"] = "Thống kê sản phẩm bán chạy"; }
+@section Styles { <link rel="stylesheet" href="~/css/revenue.css" asp-append-version="true" /> }
+<div class="revenue-page">
+    <nav class="revenue-breadcrumb" aria-label="Đường dẫn"><a asp-action="Index">DOANH THU</a> / <a asp-action="ChonTieuChi">Thống kê sản phẩm bán chạy</a></nav>
+    <div class="revenue-heading-row">
+    <h1>Thống kê sản phẩm bán chạy</h1>
+    </div>
+    <div class="revenue-rankings @(Model.Criterion == "ca2" ? "both" : "single")">
+        @if (Model.Criterion is "ca2" or "doanhthu") {
+            <partial name="_ProductRanking" model='new ProductRanking("Xếp hạng theo doanh thu", "doanhthu", Model.ByRevenue)' />
+        }
+        @if (Model.Criterion is "ca2" or "soluong") {
+            <partial name="_ProductRanking" model='new ProductRanking("Xếp hạng theo số lượng bán ra", "soluong", Model.ByQuantity)' />
+        }
+    </div>
+</div>

@@ -1,0 +1,8 @@
+@model string
+<div class="modal fade catalog-modal customer-modal" id="@Model" tabindex="-1" aria-label="Phiếu thêm khách hàng mới" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+<header class="catalog-modal-header"><h2>Phiếu thêm khách hàng mới</h2></header>
+<form class="catalog-form" method="post" asp-controller="KhachHang" asp-action="Them" data-customer-form="add" novalidate>
+<partial name="~/Views/KhachHang/_CustomerFields.cshtml" model='"customerAdd"' />
+<partial name="_FormError" />
+<footer class="catalog-modal-actions"><button class="catalog-white" type="button" data-bs-dismiss="modal">Hủy</button><button class="catalog-primary" type="submit">Lưu</button></footer>
+</form></div></div></div>

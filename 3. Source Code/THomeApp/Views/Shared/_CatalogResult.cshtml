@@ -1,0 +1,7 @@
+@{ var catalogSuccess = TempData["CatalogSuccess"] as string; }
+<div class="modal fade catalog-modal catalog-result" id="catalogResultModal" tabindex="-1" aria-labelledby="catalogResultTitle" aria-hidden="true" data-notice="@catalogSuccess">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Đóng"></button>
+        <div class="catalog-result-body"><partial name="_SuccessNotice" model='new SuccessNotice("catalogResultTitle",catalogSuccess??"")' /></div>
+    </div></div>
+</div>

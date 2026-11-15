@@ -1,0 +1,25 @@
+@model List<KhachHang>
+@{ViewData["Title"]="KHÁCH HÀNG";}
+@section Styles {<link rel="stylesheet" href="~/css/catalog.css" asp-append-version="true" />}
+<div class="catalog-page customer-page">
+    <header class="customer-search-heading"><h1>KHÁCH HÀNG</h1><form method="get" asp-action="Index"><div class="customer-search-input"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input class="form-control" name="search" value="@ViewBag.Search" placeholder="Nhập từ khóa ở đây" aria-label="Tìm khách hàng" /></div><button type="submit" class="catalog-white">Tìm</button></form></header>
+    <section class="catalog-panel tall"><header class="catalog-panel-heading"><h2>Danh sách khách hàng</h2><button class="catalog-primary" type="button" id="newCustomerButton">+ Thêm</button></header>
+        <div class="catalog-table-wrap table-responsive"><table class="catalog-table" id="customersTable"><thead><tr><th>Mã khách hàng</th><th>Họ và tên</th><th>Số điện thoại</th><th>Địa chỉ</th></tr></thead><tbody>
+        @foreach(var customer in Model){<tr tabindex="0" data-customer-id="@customer.MaKH"><td>@customer.MaKH</td><td>@customer.HoTen</td><td>@customer.SDT</td><td>@(customer.DiaChi??"—")</td></tr>}
+        @if(Model.Count==0){<tr><td colspan="4" class="catalog-empty">Không tìm thấy khách hàng phù hợp!</td></tr>}
+        </tbody></table></div>
+    </section>
+</div>
+<partial name="_CustomerAddModal" model='"customerAddModal"' />
+<div class="modal fade catalog-modal customer-modal" id="customerDetailModal" tabindex="-1" aria-labelledby="customerDetailTitle" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <header class="catalog-modal-header"><h2 id="customerDetailTitle">Thông tin khách hàng <button class="customer-pencil" type="button" id="editCustomerButton" aria-label="Sửa thông tin khách hàng"><i class="fa-regular fa-pen-to-square" aria-hidden="true"></i></button></h2></header>
+    <form class="catalog-form" method="post" asp-action="Sua" data-customer-form="edit" novalidate><input type="hidden" name="maKH" /><partial name="_CustomerFields" model='"customerDetail"' />
+        <partial name="_FormError" /><footer class="catalog-modal-actions"><button class="catalog-primary" id="customerPurchasesLink" type="button">Hóa đơn đã mua</button><button class="catalog-white" type="button" data-bs-dismiss="modal">Hủy</button><button class="catalog-primary" type="submit" id="saveCustomerButton" disabled>Lưu</button></footer>
+    </form>
+</div></div></div>
+<div class="modal fade catalog-modal customer-purchases-modal" id="customerPurchasesModal" tabindex="-1" aria-labelledby="customerPurchasesTitle" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+<header class="catalog-modal-header"><h2 id="customerPurchasesTitle">Hóa đơn đã mua</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></header>
+<div class="customer-purchases-content"><table class="catalog-table"><thead><tr><th>Mã hóa đơn</th><th>Ngày tạo đơn</th><th>Tổng tiền hóa đơn</th></tr></thead><tbody id="customerPurchaseRows"></tbody></table><p id="customerPurchaseError" class="text-danger" hidden></p></div>
+</div></div></div>
+<partial name="_CatalogResult" />
+@section Scripts {<script src="~/js/customer-forms.js" asp-append-version="true"></script><script src="~/js/catalog.js" asp-append-version="true"></script>}

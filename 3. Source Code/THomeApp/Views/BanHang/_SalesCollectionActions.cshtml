@@ -1,0 +1,7 @@
+@model HoaDon
+<div class="sales-payment-actions">
+    @if (Model.ConNo > 0 && Model.TrangThaiThanhToan != "Đã hủy") {
+        <button type="button" class="btn invoice-cancel" data-bs-toggle="modal" data-bs-target="#collectMoneyModal">Thu tiền</button>
+    }
+    @if (Model.PhaiHoan > 0 && Model.TrangThaiThanhToan != "Đã hủy") { <button type="button" class="btn invoice-cancel" data-bs-toggle="modal" data-bs-target="#refundModal">Xác nhận đã hoàn tiền</button> }
+</div>

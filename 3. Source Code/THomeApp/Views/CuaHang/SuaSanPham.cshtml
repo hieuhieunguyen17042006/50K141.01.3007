@@ -1,0 +1,21 @@
+@using System.Globalization
+@model ProductInput
+@{ViewData["Title"]="Sửa sản phẩm";}
+@section Styles {<link rel="stylesheet" href="~/css/catalog.css" asp-append-version="true" />}
+<div class="catalog-page store-page product-page">
+    <nav class="catalog-breadcrumb">CỬA HÀNG / <a asp-action="Index">Sản phẩm</a> / <strong>Sửa sản phẩm</strong></nav>
+    <header class="catalog-page-heading"><h1>Sửa sản phẩm</h1></header>
+    <section class="catalog-panel product-editor"><h2>Thông tin sản phẩm</h2>
+        <form method="post" asp-action="SuaSanPham" class="catalog-form" id="productEditorForm" novalidate>
+        <input type="hidden" name="MaSP" value="@Model.MaSP" />
+            <div class="catalog-editor-fields catalog-fields">
+            <label><span>Tên sản phẩm <em>*</em></span><input class="form-control" name="TenSP" value="@Model.TenSP" maxlength="200" required /><span data-error-for="TenSP"></span></label>
+            <label><span>Đơn giá <em>*</em></span><div class="discount-input-unit"><input class="form-control" name="DonGia" type="number" step="1" min="1" value="@Model.DonGia?.ToString("0.##",CultureInfo.InvariantCulture)" required /><span>VNĐ</span></div><span data-error-for="DonGia"></span></label>
+            <label><span>Ghi chú</span><textarea class="form-control" name="GhiChu" maxlength="500">@Model.GhiChu</textarea><span data-error-for="GhiChu"></span></label>
+            </div>
+            <footer class="product-add-footer"><partial name="_FormError" /><div><a class="catalog-white" asp-action="Index">Hủy</a><button type="submit" class="catalog-primary">Lưu</button></div></footer>
+        </form>
+    </section>
+</div>
+<partial name="_CatalogResult" />
+@section Scripts {<script src="~/js/catalog.js" asp-append-version="true"></script>}

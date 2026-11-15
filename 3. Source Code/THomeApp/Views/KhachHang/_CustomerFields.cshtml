@@ -1,0 +1,20 @@
+@model string
+@{var detail=Model=="customerDetail";}
+<div class="customer-fields">
+<div class="customer-field-row" data-customer-row="LoaiKhach"><label class="customer-main-field"><span>Loại khách hàng <em>*</em></span><div><select class="form-select" name="LoaiKhach" data-customer-field="loaiKhach" data-customer-identity required disabled="@detail"><option value="" selected disabled hidden></option><option value="Cá nhân">Cá nhân</option><option value="Doanh nghiệp">Doanh nghiệp</option></select></div></label><div class="customer-meta-slot" hidden></div></div>
+<div class="customer-field-row" data-customer-row="HoTen"><label class="customer-main-field"><span>Họ và tên <em>*</em></span><div><input class="form-control" name="HoTen" data-customer-field="hoTen" data-customer-identity readonly="@detail" maxlength="100" required /></div></label></div>
+<div class="customer-field-row" data-customer-row="TenCongTy" data-company-field hidden><label class="customer-main-field"><span>Tên công ty <em>*</em></span><div><input class="form-control" name="TenCongTy" data-customer-field="tenCongTy" data-customer-identity readonly="@detail" maxlength="200" /></div></label></div>
+<div class="customer-field-row" data-customer-row="MaSoThue" data-company-field hidden><label class="customer-main-field"><span>Mã số thuế <em>*</em></span><div><input class="form-control" name="MaSoThue" data-customer-field="maSoThue" data-customer-identity readonly="@detail" maxlength="13" inputmode="numeric" /></div></label></div>
+<div class="customer-field-row" data-customer-row="GioiTinh"><label class="customer-main-field"><span>Giới tính <em>*</em></span><div><select class="form-select" name="GioiTinh" data-customer-field="gioiTinh" data-customer-identity required disabled="@detail"><option value="" selected disabled hidden></option><option>Nam</option><option>Nữ</option></select></div></label><div class="customer-meta-slot" hidden></div></div>
+<div class="customer-field-row" data-customer-row="DiaChi"><label class="customer-main-field"><span>Địa chỉ <em>*</em></span><div><input class="form-control" required name="DiaChi" data-customer-field="diaChi" data-customer-contact readonly="@detail" maxlength="255" /></div></label></div>
+<div class="customer-field-row" data-customer-row="NgaySinh"><label class="customer-main-field"><span>Ngày sinh <em>*</em></span><div><input class="form-control" type="date" required name="NgaySinh" data-customer-field="ngaySinh" data-customer-identity readonly="@detail" /></div></label></div>
+<div class="customer-field-row" data-customer-row="SDT"><label class="customer-main-field"><span>Số điện thoại <em>*</em></span><div><input class="form-control" name="SDT" data-customer-field="sdt" data-customer-contact type="tel" inputmode="numeric" maxlength="10" pattern="0[0-9]{9}" readonly="@detail" required /></div></label></div>
+<div class="customer-field-row" data-customer-row="Email"><label class="customer-main-field"><span>Email <em>*</em></span><div><input class="form-control" name="Email" data-customer-field="email" data-customer-contact type="email" required maxlength="100" readonly="@detail" /></div></label></div>
+<div class="customer-field-row" data-customer-row="GhiChu"><label class="customer-main-field"><span>Ghi chú</span><div><textarea class="form-control" name="GhiChu" data-customer-field="ghiChu" data-customer-contact maxlength="500" readonly="@detail"></textarea></div></label></div>
+</div>
+@if(detail){
+<div class="customer-code-total">
+<label data-system-field="code"><span>Mã khách hàng</span><input class="form-control" id="customerCode" readonly /></label>
+<label data-system-field="total"><span>Tổng GTMTL</span><input class="form-control" id="customerLifetimeTotal" readonly /></label>
+</div>
+}

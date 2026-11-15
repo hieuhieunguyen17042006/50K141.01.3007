@@ -1,0 +1,23 @@
+@model ProductInput
+@{ ViewData["Title"]="Thêm sản phẩm"; }
+@section Styles {<link rel="stylesheet" href="~/css/catalog.css" asp-append-version="true" />}
+<div class="catalog-page store-page product-page product-add-page">
+    <nav class="catalog-breadcrumb">CỬA HÀNG / <a asp-action="Index">Sản phẩm</a> / <strong>Thêm sản phẩm</strong></nav>
+    <header class="catalog-page-heading"><h1>Thêm sản phẩm</h1></header>
+    <section class="catalog-panel"><h2>Thông tin sản phẩm</h2>
+    <form method="post" asp-action="ThemSanPham" class="catalog-form product-add-form" novalidate>
+        <div class="product-add-fields">
+            <label class="product-code"><span>Mã sản phẩm <em>*</em></span><input class="form-control" name="MaSP" maxlength="50" required /></label>
+            <label class="product-name-field"><span>Tên sản phẩm <em>*</em></span><input class="form-control" name="TenSP" maxlength="200" required /></label>
+            <label><span>Danh mục <em>*</em></span><input class="form-control" name="DanhMuc" maxlength="100" required /></label>
+            <label><span>Đơn vị tính <em>*</em></span><input class="form-control" name="DonViTinh" maxlength="50" required /></label>
+            <label class="product-full-field"><span>Đơn giá <em>*</em></span><div class="discount-input-unit"><input class="form-control" type="number" name="DonGia" min="1" max="1000000000000" step="1" required /><span>VNĐ</span></div></label>
+            <label class="product-full-field"><span>Ghi chú</span><textarea class="form-control" name="GhiChu" maxlength="500" rows="2"></textarea></label>
+        </div>
+        <footer class="product-add-footer"><partial name="_FormError" /><div><a class="catalog-white" asp-action="Index">Hủy</a><button class="catalog-primary" type="submit">Lưu</button></div></footer>
+    </form></section>
+</div>
+<partial name="_CatalogResult" />
+@section Scripts {
+<script id="existingProductCodes" type="application/json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ExistingProductCodes ?? new List<string>()))</script>
+<script src="~/js/catalog.js" asp-append-version="true"></script>}

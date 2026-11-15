@@ -1,0 +1,39 @@
+@model RevenueReport
+@{ ViewData["Title"] = "Báo cáo doanh thu"; }
+@section Styles { <link rel="stylesheet" href="~/css/revenue.css" asp-append-version="true" /> }
+<div class="revenue-page" data-report-empty="@((!Model.HasData).ToString().ToLowerInvariant())">
+    <nav class="revenue-breadcrumb" aria-label="Đường dẫn"><a asp-action="Index">DOANH THU</a> / Tạo báo cáo doanh thu</nav>
+    <h1>Báo cáo doanh thu</h1>
+    <section class="revenue-report-panel">
+        <div class="revenue-period-header">
+            <h2>Báo cáo doanh thu @Model.Period</h2>
+            <details class="revenue-period-picker">
+                <summary><i class="fa-regular fa-calendar" aria-hidden="true"></i> Chọn kỳ</summary>
+                <form method="get" asp-action="BaoCao">
+                    <label>Từ ngày<input class="form-control" type="date" name="fromDate" value="@Model.From.ToString("yyyy-MM-dd")" required /></label>
+                    <label>Đến ngày<input class="form-control" type="date" name="toDate" value="@Model.To.ToString("yyyy-MM-dd")" required /></label>
+                    <button class="revenue-button" type="submit">Xem báo cáo</button>
+                </form>
+            </details>
+        </div>
+        <div class="revenue-metrics">
+            @foreach (var item in Model.Summary.Take(4)) {
+                <div class="revenue-metric"><span>@item.Label</span><strong data-metric="@item.Label" data-value="@item.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)">@RevenueReport.Money(item.Amount)</strong></div>
+            }
+        </div>
+        <section class="revenue-classification">
+            <h2>Phân loại</h2>
+            @foreach (var item in Model.Summary.Skip(4).Take(3)) {
+                var icon = item.Label == "Tổng tiền mặt" ? "fa-money-bill" : item.Label == "Tổng tiền chuyển khoản" ? "fa-building-columns" : "fa-receipt";
+                <div class="revenue-classification-row"><span><i class="fa-solid @icon" aria-hidden="true"></i>@item.Label</span><strong data-metric="@item.Label" data-value="@item.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)">@RevenueReport.Money(item.Amount)</strong></div>
+            }
+            <div class="revenue-classification-row revenue-classification-total"><span>Tổng doanh thu</span><strong>@RevenueReport.Money(Model.AfterDiscount)</strong></div>
+        </section>
+        <div class="revenue-export-actions">
+            <a class="revenue-button" data-export="PDF" asp-action="ExportPdf" asp-route-fromDate="@Model.From.ToString("yyyy-MM-dd")" asp-route-toDate="@Model.To.ToString("yyyy-MM-dd")">PDF</a>
+            <a class="revenue-button" data-export="Excel" asp-action="ExportExcel" asp-route-fromDate="@Model.From.ToString("yyyy-MM-dd")" asp-route-toDate="@Model.To.ToString("yyyy-MM-dd")">Excel</a>
+        </div>
+    </section>
+</div>
+<partial name="_RevenueResult" />
+@section Scripts { <script src="~/js/revenue.js" asp-append-version="true"></script> }
